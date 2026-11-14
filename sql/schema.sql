@@ -48,7 +48,6 @@ CREATE TABLE equipo_imagenes (
     FOREIGN KEY (equipo_id) REFERENCES equipos(id)
 ) ENGINE=InnoDB;
 
-
 CREATE TABLE prestamos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     profesor_id INT NOT NULL,
@@ -56,12 +55,12 @@ CREATE TABLE prestamos (
     estado VARCHAR(20) NOT NULL DEFAULT 'solicitado',
     fecha_inicio DATETIME NOT NULL,
     fecha_fin DATETIME NOT NULL,
+    dias_mora INT NOT NULL DEFAULT 0,
     creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (profesor_id) REFERENCES usuarios(id),
     FOREIGN KEY (operador_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;
-
 
 CREATE TABLE prestamo_detalle (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -73,7 +72,6 @@ CREATE TABLE prestamo_detalle (
     FOREIGN KEY (equipo_id) REFERENCES equipos(id)
 ) ENGINE=InnoDB;
 
-
 CREATE TABLE auth_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
@@ -83,7 +81,6 @@ CREATE TABLE auth_tokens (
 
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 ) ENGINE=InnoDB;
-
 
 CREATE TABLE bitacora (
     id INT AUTO_INCREMENT PRIMARY KEY,
