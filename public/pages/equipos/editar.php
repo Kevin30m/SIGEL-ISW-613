@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . '/../../../includes/auth.php';
@@ -28,6 +27,106 @@ $equipo = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$equipo) {
     header('Location: /pages/equipos/index.php');
     exit();
+}
+
+/*
+|--------------------------------------------------------------------------
+| Equipos vistos recientemente
+|--------------------------------------------------------------------------
+*/
+
+// Obtener los equipos guardados anteriormente en la cookie
+$equiposRecientes = [];
+
+if (!empty($_COOKIE['equipos_recientes'])) {
+
+    $datosCookie = json_decode(
+        $_COOKIE['equipos_recientes'],
+        true
+    );
+
+    if (is_array($datosCookie)) {
+        $equiposRecientes = $datosCookie;
+    }
+}
+
+// Convertir todos los valores a números enteros
+$equiposRecientes = array_map(
+    'intval',
+    $equiposRecientes
+);
+
+// Quitar el equipo actual si ya estaba guardado
+$equiposRecientes = array_values(
+    array_filter(
+        $equiposRecientes,
+        function ($equipoId) use ($id) {
+            return $equipoId !== $id;
+        }
+    )
+);
+
+// Colocar el equipo actual al inicio
+array_unshift(
+    $equiposRecientes,
+    $id
+);
+
+// Guardar solamente los últimos 5
+$equiposRecientes = array_slice(
+    $equiposRecientes,
+    0,
+    5
+);
+
+// Guardar la cookie durante 30 días
+setcookie(
+    'equipos_recientes',
+    json_encode($equiposRecientes),
+    [
+        'expires' => time() + (30 * 24 * 60 * 60),
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]
+);
+
+// Buscar la información de los equipos recientes
+$listaRecientes = [];
+
+if (count($equiposRecientes) > 0) {
+
+    $marcadores = implode(
+        ',',
+        array_fill(
+            0,
+            count($equiposRecientes),
+            '?'
+        )
+    );
+
+    $sql = "SELECT id, codigo, nombre
+            FROM equipos
+            WHERE id IN ($marcadores)
+            AND eliminado_en IS NULL";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($equiposRecientes);
+
+    $datosRecientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Mantener el mismo orden de la cookie
+    foreach ($equiposRecientes as $equipoRecienteId) {
+
+        foreach ($datosRecientes as $dato) {
+
+            if ((int) $dato['id'] === $equipoRecienteId) {
+
+                $listaRecientes[] = $dato;
+                break;
+            }
+        }
+    }
 }
 
 // Buscar las categorías
@@ -79,7 +178,10 @@ if (empty($_SESSION['csrf_token'])) {
 
     <?php if (isset($_GET['error'])): ?>
 
-        <p>No se pudieron guardar los cambios. Revise los datos.</p>
+        <p>
+            No se pudieron guardar los cambios.
+            Revise los datos.
+        </p>
 
     <?php endif; ?>
 
@@ -98,7 +200,11 @@ if (empty($_SESSION['csrf_token'])) {
         <input
             type="hidden"
             name="csrf_token"
-            value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
+            value="<?php echo htmlspecialchars(
+                $_SESSION['csrf_token'],
+                ENT_QUOTES | ENT_SUBSTITUTE,
+                'UTF-8'
+            ); ?>"
         >
 
         <p>
@@ -107,7 +213,11 @@ if (empty($_SESSION['csrf_token'])) {
             <input
                 type="text"
                 name="codigo"
-                value="<?php echo htmlspecialchars($equipo['codigo']); ?>"
+                value="<?php echo htmlspecialchars(
+                    $equipo['codigo'],
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                ); ?>"
                 maxlength="50"
                 required
             >
@@ -119,7 +229,11 @@ if (empty($_SESSION['csrf_token'])) {
             <input
                 type="text"
                 name="nombre"
-                value="<?php echo htmlspecialchars($equipo['nombre']); ?>"
+                value="<?php echo htmlspecialchars(
+                    $equipo['nombre'],
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                ); ?>"
                 maxlength="100"
                 required
             >
@@ -134,9 +248,19 @@ if (empty($_SESSION['csrf_token'])) {
 
                     <option
                         value="<?php echo $categoria['id']; ?>"
-                        <?php echo $equipo['categoria_id'] == $categoria['id'] ? 'selected' : ''; ?>
+                        <?php
+                        echo $equipo['categoria_id'] == $categoria['id']
+                            ? 'selected'
+                            : '';
+                        ?>
                     >
-                        <?php echo htmlspecialchars($categoria['nombre']); ?>
+                        <?php
+                        echo htmlspecialchars(
+                            $categoria['nombre'],
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        );
+                        ?>
                     </option>
 
                 <?php endforeach; ?>
@@ -150,7 +274,11 @@ if (empty($_SESSION['csrf_token'])) {
             <input
                 type="text"
                 name="estado"
-                value="<?php echo htmlspecialchars($equipo['estado']); ?>"
+                value="<?php echo htmlspecialchars(
+                    $equipo['estado'],
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                ); ?>"
                 maxlength="30"
                 required
             >
@@ -162,7 +290,11 @@ if (empty($_SESSION['csrf_token'])) {
             <input
                 type="text"
                 name="version"
-                value="<?php echo htmlspecialchars($equipo['version'] ?? ''); ?>"
+                value="<?php echo htmlspecialchars(
+                    $equipo['version'] ?? '',
+                    ENT_QUOTES | ENT_SUBSTITUTE,
+                    'UTF-8'
+                ); ?>"
                 maxlength="50"
             >
         </p>
@@ -184,6 +316,7 @@ if (empty($_SESSION['csrf_token'])) {
                     <br>
 
                     <label>
+
                         <input
                             type="checkbox"
                             name="eliminar_imagenes[]"
@@ -191,6 +324,7 @@ if (empty($_SESSION['csrf_token'])) {
                         >
 
                         Eliminar esta imagen
+
                     </label>
 
                 </p>
@@ -221,6 +355,52 @@ if (empty($_SESSION['csrf_token'])) {
         </button>
 
     </form>
+
+    <hr>
+
+    <h3>Equipos vistos recientemente</h3>
+
+    <?php if (count($listaRecientes) > 0): ?>
+
+        <ul>
+
+            <?php foreach ($listaRecientes as $reciente): ?>
+
+                <li>
+
+                    <a
+                        href="/pages/equipos/editar.php?id=<?php echo $reciente['id']; ?>"
+                    >
+                        <?php
+                        echo htmlspecialchars(
+                            $reciente['codigo'],
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        );
+                        ?>
+
+                        -
+
+                        <?php
+                        echo htmlspecialchars(
+                            $reciente['nombre'],
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        );
+                        ?>
+                    </a>
+
+                </li>
+
+            <?php endforeach; ?>
+
+        </ul>
+
+    <?php else: ?>
+
+        <p>No hay equipos vistos recientemente.</p>
+
+    <?php endif; ?>
 
 </body>
 

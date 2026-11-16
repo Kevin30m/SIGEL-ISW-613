@@ -17,6 +17,7 @@ CREATE TABLE usuarios (
     password_hash VARCHAR(255) NULL,
     activo TINYINT(1) NOT NULL DEFAULT 1,
     intentos_fallidos INT NOT NULL DEFAULT 0,
+    bloqueado_hasta DATETIME NULL,
     eliminado_en DATETIME NULL,
 
     FOREIGN KEY (rol_id) REFERENCES roles(id)
