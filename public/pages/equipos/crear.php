@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . '/../../../includes/auth.php';
@@ -29,113 +28,194 @@ if (empty($_SESSION['csrf_token'])) {
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Registrar equipo - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Registrar equipo</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/equipos/index.php">
-            Volver a equipos
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <?php if (isset($_GET['error'])): ?>
+            <h2>Registrar equipo</h2>
 
-        <p>No se pudo registrar el equipo. Revise los datos.</p>
+            <div class="acciones-superiores">
 
-    <?php endif; ?>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/equipos/index.php"
+                >
+                    Volver a equipos
+                </a>
 
-    <form action="/actions/equipos/crear.php"
-          method="POST"
-          enctype="multipart/form-data">
+            </div>
 
-        <input
-            type="hidden"
-            name="csrf_token"
-            value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-        >
+            <?php if (isset($_GET['error'])): ?>
 
-        <p>
-            <label>Código:</label><br>
+                <div class="mensaje-error">
+                    No se pudo registrar el equipo. Revise los datos.
+                </div>
 
-            <input
-                type="text"
-                name="codigo"
-                maxlength="50"
-                required
+            <?php endif; ?>
+
+            <form
+                class="formulario"
+                action="/actions/equipos/crear.php"
+                method="POST"
+                enctype="multipart/form-data"
             >
-        </p>
 
-        <p>
-            <label>Nombre del equipo:</label><br>
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo htmlspecialchars(
+                        $_SESSION['csrf_token'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
 
-            <input
-                type="text"
-                name="nombre"
-                maxlength="100"
-                required
-            >
-        </p>
+                <div class="formulario-grupo">
 
-        <p>
-            <label>Categoría:</label><br>
+                    <label for="codigo">
+                        Código
+                    </label>
 
-            <select name="categoria_id" required>
+                    <input
+                        type="text"
+                        name="codigo"
+                        id="codigo"
+                        maxlength="50"
+                        required
+                    >
 
-                <option value="">Seleccione una categoría</option>
+                </div>
 
-                <?php foreach ($categorias as $categoria): ?>
+                <div class="formulario-grupo">
 
-                    <option value="<?php echo $categoria['id']; ?>">
-                        <?php echo htmlspecialchars($categoria['nombre']); ?>
-                    </option>
+                    <label for="nombre">
+                        Nombre del equipo
+                    </label>
 
-                <?php endforeach; ?>
+                    <input
+                        type="text"
+                        name="nombre"
+                        id="nombre"
+                        maxlength="100"
+                        required
+                    >
 
-            </select>
-        </p>
+                </div>
 
-        <p>
-            <label>Estado:</label><br>
+                <div class="formulario-grupo">
 
-            <input
-                type="text"
-                name="estado"
-                value="disponible"
-                maxlength="30"
-                required
-            >
-        </p>
+                    <label for="categoria_id">
+                        Categoría
+                    </label>
 
-        <p>
-            <label>Versión:</label><br>
+                    <select
+                        name="categoria_id"
+                        id="categoria_id"
+                        required
+                    >
 
-            <input
-                type="text"
-                name="version"
-                maxlength="50"
-            >
-        </p>
+                        <option value="">
+                            Seleccione una categoría
+                        </option>
 
-        <p>
-            <label>Imágenes del equipo:</label><br>
+                        <?php foreach ($categorias as $categoria): ?>
 
-            <input
-                type="file"
-                name="imagenes[]"
-                accept="image/jpeg,image/png,image/webp"
-                multiple
-            >
-        </p>
+                            <option value="<?php echo $categoria['id']; ?>">
 
-        <button type="submit">
-            Guardar equipo
-        </button>
+                                <?php echo htmlspecialchars(
+                                    $categoria['nombre'],
+                                    ENT_QUOTES | ENT_SUBSTITUTE,
+                                    'UTF-8'
+                                ); ?>
 
-    </form>
+                            </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+                <div class="formulario-grupo">
+
+                    <label for="estado">
+                        Estado
+                    </label>
+
+                    <input
+                        type="text"
+                        name="estado"
+                        id="estado"
+                        value="disponible"
+                        maxlength="30"
+                        required
+                    >
+
+                </div>
+
+                <div class="formulario-grupo">
+
+                    <label for="version">
+                        Versión
+                    </label>
+
+                    <input
+                        type="text"
+                        name="version"
+                        id="version"
+                        maxlength="50"
+                    >
+
+                </div>
+
+                <div class="formulario-grupo">
+
+                    <label for="imagenes">
+                        Imágenes del equipo
+                    </label>
+
+                    <input
+                        type="file"
+                        name="imagenes[]"
+                        id="imagenes"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                    >
+
+                    <small>
+                        Puede seleccionar hasta 5 imágenes.
+                    </small>
+
+                </div>
+
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Guardar equipo
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </body>
 

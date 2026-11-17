@@ -84,260 +84,373 @@ if (empty($_SESSION['csrf_token'])) {
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Detalle del préstamo - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Detalle del préstamo</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/prestamos/index.php">
-            Volver a préstamos
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <?php if (isset($_GET['error'])): ?>
+            <h2>Detalle del préstamo</h2>
 
-        <p>No se pudo realizar la operación.</p>
+            <div class="acciones-superiores">
 
-    <?php endif; ?>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/prestamos/index.php"
+                >
+                    Volver a préstamos
+                </a>
 
-    <p>
-        <strong>ID:</strong>
-        <?php echo $prestamo['id']; ?>
-    </p>
+            </div>
 
-    <p>
-        <strong>Profesor:</strong>
-        <?php echo htmlspecialchars($prestamo['profesor']); ?>
-    </p>
+            <?php if (isset($_GET['error'])): ?>
 
-    <p>
-        <strong>Operador:</strong>
-        <?php echo htmlspecialchars($prestamo['operador']); ?>
-    </p>
+                <div class="mensaje-error">
+                    No se pudo realizar la operación.
+                </div>
 
-    <p>
-        <strong>Fecha de inicio:</strong>
-        <?php echo htmlspecialchars($prestamo['fecha_inicio']); ?>
-    </p>
+            <?php endif; ?>
 
-    <p>
-        <strong>Fecha de fin:</strong>
-        <?php echo htmlspecialchars($prestamo['fecha_fin']); ?>
-    </p>
+            <div class="detalle-prestamo">
 
-    <p>
-        <strong>Estado:</strong>
-        <?php echo htmlspecialchars($prestamo['estado']); ?>
-    </p>
+                <p>
+                    <strong>ID:</strong>
+                    <?php echo $prestamo['id']; ?>
+                </p>
 
-    <p>
-        <strong>Días de mora:</strong>
-        <?php echo $prestamo['dias_mora']; ?>
-    </p>
+                <p>
+                    <strong>Profesor:</strong>
 
-    <h3>Equipos del préstamo</h3>
+                    <?php echo htmlspecialchars(
+                        $prestamo['profesor'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>
+                </p>
 
-    <table border="1" cellpadding="5">
+                <p>
+                    <strong>Operador:</strong>
 
-        <thead>
-            <tr>
-                <th>Código</th>
-                <th>Nombre</th>
-                <th>Fecha devolución</th>
-            </tr>
-        </thead>
+                    <?php echo htmlspecialchars(
+                        $prestamo['operador'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>
+                </p>
 
-        <tbody>
+                <p>
+                    <strong>Fecha de inicio:</strong>
 
-            <?php foreach ($equipos as $equipo): ?>
+                    <?php echo htmlspecialchars(
+                        $prestamo['fecha_inicio'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>
+                </p>
 
-                <tr>
+                <p>
+                    <strong>Fecha de fin:</strong>
 
-                    <td>
-                        <?php echo htmlspecialchars($equipo['codigo']); ?>
-                    </td>
+                    <?php echo htmlspecialchars(
+                        $prestamo['fecha_fin'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>
+                </p>
 
-                    <td>
-                        <?php echo htmlspecialchars($equipo['nombre']); ?>
-                    </td>
+                <p>
+                    <strong>Estado:</strong>
 
-                    <td>
-                        <?php
-                        echo $equipo['fecha_devolucion']
-                            ? htmlspecialchars($equipo['fecha_devolucion'])
-                            : 'Pendiente';
-                        ?>
-                    </td>
+                    <span class="estado-prestamo">
 
-                </tr>
+                        <?php echo htmlspecialchars(
+                            $prestamo['estado'],
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        ); ?>
 
-            <?php endforeach; ?>
+                    </span>
+                </p>
 
-        </tbody>
+                <p>
+                    <strong>Días de mora:</strong>
 
-    </table>
+                    <span class="mora">
+                        <?php echo (int) $prestamo['dias_mora']; ?>
+                    </span>
+                </p>
 
-    <br>
+            </div>
 
-    <h3>Acciones del préstamo</h3>
+            <h3>Equipos del préstamo</h3>
 
-    <?php if ($prestamo['estado'] === 'solicitado'): ?>
+            <table class="tabla">
 
-        <form
-            action="/actions/prestamos/cambiar_estado.php"
-            method="POST"
-            style="display:inline;"
-        >
+                <thead>
 
-            <input
-                type="hidden"
-                name="id"
-                value="<?php echo $prestamo['id']; ?>"
-            >
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Fecha devolución</th>
+                    </tr>
 
-            <input
-                type="hidden"
-                name="estado"
-                value="aprobado"
-            >
+                </thead>
 
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-            >
+                <tbody>
 
-            <button type="submit">
-                Aprobar
-            </button>
+                    <?php foreach ($equipos as $equipo): ?>
 
-        </form>
+                        <tr>
 
-        <form
-            action="/actions/prestamos/cambiar_estado.php"
-            method="POST"
-            style="display:inline;"
-        >
+                            <td>
+                                <?php echo htmlspecialchars(
+                                    $equipo['codigo'],
+                                    ENT_QUOTES | ENT_SUBSTITUTE,
+                                    'UTF-8'
+                                ); ?>
+                            </td>
 
-            <input
-                type="hidden"
-                name="id"
-                value="<?php echo $prestamo['id']; ?>"
-            >
+                            <td>
+                                <?php echo htmlspecialchars(
+                                    $equipo['nombre'],
+                                    ENT_QUOTES | ENT_SUBSTITUTE,
+                                    'UTF-8'
+                                ); ?>
+                            </td>
 
-            <input
-                type="hidden"
-                name="estado"
-                value="cancelado"
-            >
+                            <td>
 
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-            >
+                                <?php
+                                echo $equipo['fecha_devolucion']
+                                    ? htmlspecialchars(
+                                        $equipo['fecha_devolucion'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    )
+                                    : 'Pendiente';
+                                ?>
 
-            <button type="submit">
-                Cancelar
-            </button>
+                            </td>
 
-        </form>
+                        </tr>
 
-    <?php elseif ($prestamo['estado'] === 'aprobado'): ?>
+                    <?php endforeach; ?>
 
-        <form
-            action="/actions/prestamos/cambiar_estado.php"
-            method="POST"
-            style="display:inline;"
-        >
+                </tbody>
 
-            <input
-                type="hidden"
-                name="id"
-                value="<?php echo $prestamo['id']; ?>"
-            >
+            </table>
 
-            <input
-                type="hidden"
-                name="estado"
-                value="entregado"
-            >
+            <div class="acciones-prestamo">
 
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-            >
+                <h3>Acciones del préstamo</h3>
 
-            <button type="submit">
-                Entregar
-            </button>
+                <?php if ($prestamo['estado'] === 'solicitado'): ?>
 
-        </form>
+                    <form
+                        action="/actions/prestamos/cambiar_estado.php"
+                        method="POST"
+                    >
 
-        <form
-            action="/actions/prestamos/cambiar_estado.php"
-            method="POST"
-            style="display:inline;"
-        >
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="<?php echo $prestamo['id']; ?>"
+                        >
 
-            <input
-                type="hidden"
-                name="id"
-                value="<?php echo $prestamo['id']; ?>"
-            >
+                        <input
+                            type="hidden"
+                            name="estado"
+                            value="aprobado"
+                        >
 
-            <input
-                type="hidden"
-                name="estado"
-                value="cancelado"
-            >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo htmlspecialchars(
+                                $_SESSION['csrf_token'],
+                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                'UTF-8'
+                            ); ?>"
+                        >
 
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-            >
+                        <button
+                            class="boton"
+                            type="submit"
+                        >
+                            Aprobar
+                        </button>
 
-            <button type="submit">
-                Cancelar
-            </button>
+                    </form>
 
-        </form>
+                    <form
+                        action="/actions/prestamos/cambiar_estado.php"
+                        method="POST"
+                    >
 
-    <?php elseif ($prestamo['estado'] === 'entregado'): ?>
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="<?php echo $prestamo['id']; ?>"
+                        >
 
-        <form
-            action="/actions/prestamos/devolver.php"
-            method="POST"
-        >
+                        <input
+                            type="hidden"
+                            name="estado"
+                            value="cancelado"
+                        >
 
-            <input
-                type="hidden"
-                name="id"
-                value="<?php echo $prestamo['id']; ?>"
-            >
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo htmlspecialchars(
+                                $_SESSION['csrf_token'],
+                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                'UTF-8'
+                            ); ?>"
+                        >
 
-            <input
-                type="hidden"
-                name="csrf_token"
-                value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-            >
+                        <button
+                            class="boton boton-cancelar"
+                            type="submit"
+                        >
+                            Cancelar
+                        </button>
 
-            <button type="submit">
-                Registrar devolución
-            </button>
+                    </form>
 
-        </form>
+                <?php elseif ($prestamo['estado'] === 'aprobado'): ?>
 
-    <?php else: ?>
+                    <form
+                        action="/actions/prestamos/cambiar_estado.php"
+                        method="POST"
+                    >
 
-        <p>Este préstamo ya no tiene acciones pendientes.</p>
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="<?php echo $prestamo['id']; ?>"
+                        >
 
-    <?php endif; ?>
+                        <input
+                            type="hidden"
+                            name="estado"
+                            value="entregado"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo htmlspecialchars(
+                                $_SESSION['csrf_token'],
+                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                'UTF-8'
+                            ); ?>"
+                        >
+
+                        <button
+                            class="boton"
+                            type="submit"
+                        >
+                            Entregar
+                        </button>
+
+                    </form>
+
+                    <form
+                        action="/actions/prestamos/cambiar_estado.php"
+                        method="POST"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="<?php echo $prestamo['id']; ?>"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="estado"
+                            value="cancelado"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo htmlspecialchars(
+                                $_SESSION['csrf_token'],
+                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                'UTF-8'
+                            ); ?>"
+                        >
+
+                        <button
+                            class="boton boton-cancelar"
+                            type="submit"
+                        >
+                            Cancelar
+                        </button>
+
+                    </form>
+
+                <?php elseif ($prestamo['estado'] === 'entregado'): ?>
+
+                    <form
+                        action="/actions/prestamos/devolver.php"
+                        method="POST"
+                    >
+
+                        <input
+                            type="hidden"
+                            name="id"
+                            value="<?php echo $prestamo['id']; ?>"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?php echo htmlspecialchars(
+                                $_SESSION['csrf_token'],
+                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                'UTF-8'
+                            ); ?>"
+                        >
+
+                        <button
+                            class="boton"
+                            type="submit"
+                        >
+                            Registrar devolución
+                        </button>
+
+                    </form>
+
+                <?php else: ?>
+
+                    <p>
+                        Este préstamo ya no tiene acciones pendientes.
+                    </p>
+
+                <?php endif; ?>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </body>
 

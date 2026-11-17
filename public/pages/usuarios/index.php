@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . '/../../../includes/auth.php';
@@ -8,7 +7,9 @@ requireRole('admin');
 
 $buscar = trim($_GET['buscar'] ?? '');
 
-$pagina = isset($_GET['pagina']) ? (int) $_GET['pagina'] : 1;
+$pagina = isset($_GET['pagina'])
+    ? (int) $_GET['pagina']
+    : 1;
 
 if ($pagina < 1) {
     $pagina = 1;
@@ -17,6 +18,7 @@ if ($pagina < 1) {
 $porPagina = 10;
 $inicio = ($pagina - 1) * $porPagina;
 
+// Contar usuarios
 if ($buscar !== '') {
 
     $sqlTotal = "SELECT COUNT(*)
@@ -48,8 +50,11 @@ if ($buscar !== '') {
 
 $totalUsuarios = $stmtTotal->fetchColumn();
 
-$totalPaginas = ceil($totalUsuarios / $porPagina);
+$totalPaginas = ceil(
+    $totalUsuarios / $porPagina
+);
 
+// Buscar usuarios
 if ($buscar !== '') {
 
     $sql = "SELECT usuarios.id,
@@ -99,121 +104,198 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Usuarios - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
+
 <body>
 
-    <h2>Usuarios</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/dashboard.php">
-            Volver al inicio
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <p>
-        <a href="/pages/usuarios/crear.php">
-            Crear usuario
-        </a>
-    </p>
+            <h2>Usuarios</h2>
 
-    <form method="GET">
+            <div class="acciones-superiores">
 
-        <input
-            type="text"
-            name="buscar"
-            placeholder="Buscar usuario"
-            value="<?php echo htmlspecialchars($buscar); ?>"
-        >
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/dashboard.php"
+                >
+                    Volver al inicio
+                </a>
 
-        <button type="submit">
-            Buscar
-        </button>
+                <a
+                    class="boton"
+                    href="/pages/usuarios/crear.php"
+                >
+                    Crear usuario
+                </a>
 
-        <a href="/pages/usuarios/index.php">
-            Limpiar
-        </a>
+            </div>
 
-    </form>
+            <form
+                class="formulario-busqueda"
+                method="GET"
+            >
 
-    <br>
+                <input
+                    type="text"
+                    name="buscar"
+                    placeholder="Buscar usuario"
+                    value="<?php echo htmlspecialchars(
+                        $buscar,
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
 
-    <table border="1" cellpadding="5">
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Buscar
+                </button>
 
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Usuario</th>
-                <th>Rol</th>
-                <th>Activo</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/usuarios/index.php"
+                >
+                    Limpiar
+                </a>
 
-        <tbody>
+            </form>
 
-            <?php foreach ($usuarios as $usuario): ?>
+            <table class="tabla">
 
-                <tr>
+                <thead>
 
-                    <td>
-                        <?php echo $usuario['id']; ?>
-                    </td>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Activo</th>
+                        <th>Acciones</th>
+                    </tr>
 
-                    <td>
-                        <?php echo htmlspecialchars($usuario['nombre']); ?>
-                    </td>
+                </thead>
 
-                    <td>
-                        <?php echo htmlspecialchars($usuario['username']); ?>
-                    </td>
+                <tbody>
 
-                    <td>
-                        <?php echo htmlspecialchars($usuario['rol']); ?>
-                    </td>
+                    <?php if (count($usuarios) > 0): ?>
 
-                    <td>
-                        <?php echo $usuario['activo'] ? 'Sí' : 'No'; ?>
-                    </td>
+                        <?php foreach ($usuarios as $usuario): ?>
 
-                    <td>
+                            <tr>
 
-                        <a href="/pages/usuarios/editar.php?id=<?php echo $usuario['id']; ?>">
-                            Editar
+                                <td>
+                                    <?php echo $usuario['id']; ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $usuario['nombre'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $usuario['username'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $usuario['rol'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php
+                                    echo $usuario['activo']
+                                        ? 'Sí'
+                                        : 'No';
+                                    ?>
+                                </td>
+
+                                <td>
+
+                                    <a
+                                        class="boton"
+                                        href="/pages/usuarios/editar.php?id=<?php echo $usuario['id']; ?>"
+                                    >
+                                        Editar
+                                    </a>
+
+                                    <a
+                                        class="boton boton-eliminar"
+                                        href="/actions/usuarios/eliminar.php?id=<?php echo $usuario['id']; ?>"
+                                    >
+                                        Eliminar
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <tr>
+
+                            <td colspan="6">
+                                No se encontraron usuarios.
+                            </td>
+
+                        </tr>
+
+                    <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+            <?php if ($totalPaginas > 1): ?>
+
+                <div class="paginacion">
+
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+
+                        <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>">
+                            <?php echo $i; ?>
                         </a>
 
-                        |
+                    <?php endfor; ?>
 
-                        <a href="/actions/usuarios/eliminar.php?id=<?php echo $usuario['id']; ?>">
-                            Eliminar
-                        </a>
+                </div>
 
-                    </td>
+            <?php endif; ?>
 
-                </tr>
+        </div>
 
-            <?php endforeach; ?>
-
-        </tbody>
-
-    </table>
-
-    <br>
-
-    <?php if ($totalPaginas > 1): ?>
-
-        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-
-            <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>">
-                <?php echo $i; ?>
-            </a>
-
-        <?php endfor; ?>
-
-    <?php endif; ?>
+    </div>
 
 </body>
+
 </html>

@@ -52,108 +52,175 @@ if (empty($_SESSION['csrf_token'])) {
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Registrar préstamo - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Registrar préstamo</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/prestamos/index.php">
-            Volver a préstamos
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <?php if (isset($_GET['error'])): ?>
-        <p>No se pudo registrar el préstamo. Revise los datos.</p>
-    <?php endif; ?>
+            <h2>Registrar préstamo</h2>
 
-    <form action="/actions/prestamos/crear.php" method="POST">
+            <div class="acciones-superiores">
 
-        <input
-            type="hidden"
-            name="csrf_token"
-            value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-        >
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/prestamos/index.php"
+                >
+                    Volver a préstamos
+                </a>
 
-        <p>
-            <label>Profesor:</label><br>
+            </div>
 
-            <select name="profesor_id" required>
+            <?php if (isset($_GET['error'])): ?>
 
-                <option value="">
-                    Seleccione un profesor
-                </option>
+                <div class="mensaje-error">
+                    No se pudo registrar el préstamo. Revise los datos.
+                </div>
 
-                <?php foreach ($profesores as $profesor): ?>
+            <?php endif; ?>
 
-                    <option value="<?php echo $profesor['id']; ?>">
-                        <?php echo htmlspecialchars($profesor['nombre']); ?>
-                    </option>
-
-                <?php endforeach; ?>
-
-            </select>
-        </p>
-
-        <p>
-            <label>Fecha de inicio:</label><br>
-
-            <input
-                type="datetime-local"
-                name="fecha_inicio"
-                required
+            <form
+                class="formulario"
+                action="/actions/prestamos/crear.php"
+                method="POST"
             >
-        </p>
 
-        <p>
-            <label>Fecha de fin:</label><br>
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo htmlspecialchars(
+                        $_SESSION['csrf_token'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
 
-            <input
-                type="datetime-local"
-                name="fecha_fin"
-                required
-            >
-        </p>
+                <div class="formulario-grupo">
 
-        <h3>Equipos</h3>
+                    <label for="profesor_id">
+                        Profesor
+                    </label>
 
-        <?php if (count($equipos) > 0): ?>
-
-            <?php foreach ($equipos as $equipo): ?>
-
-                <label>
-
-                    <input
-                        type="checkbox"
-                        name="equipos[]"
-                        value="<?php echo $equipo['id']; ?>"
+                    <select
+                        name="profesor_id"
+                        id="profesor_id"
+                        required
                     >
 
-                    <?php echo htmlspecialchars(
-                        $equipo['codigo'] . ' - ' . $equipo['nombre']
-                    ); ?>
+                        <option value="">
+                            Seleccione un profesor
+                        </option>
 
-                </label>
+                        <?php foreach ($profesores as $profesor): ?>
 
-                <br>
+                            <option value="<?php echo $profesor['id']; ?>">
 
-            <?php endforeach; ?>
+                                <?php echo htmlspecialchars(
+                                    $profesor['nombre'],
+                                    ENT_QUOTES | ENT_SUBSTITUTE,
+                                    'UTF-8'
+                                ); ?>
 
-        <?php else: ?>
+                            </option>
 
-            <p>No hay equipos disponibles.</p>
+                        <?php endforeach; ?>
 
-        <?php endif; ?>
+                    </select>
 
-        <br>
+                </div>
 
-        <button type="submit">
-            Registrar préstamo
-        </button>
+                <div class="formulario-grupo">
 
-    </form>
+                    <label for="fecha_inicio">
+                        Fecha de inicio
+                    </label>
+
+                    <input
+                        type="datetime-local"
+                        name="fecha_inicio"
+                        id="fecha_inicio"
+                        required
+                    >
+
+                </div>
+
+                <div class="formulario-grupo">
+
+                    <label for="fecha_fin">
+                        Fecha de fin
+                    </label>
+
+                    <input
+                        type="datetime-local"
+                        name="fecha_fin"
+                        id="fecha_fin"
+                        required
+                    >
+
+                </div>
+
+                <h3>Equipos</h3>
+
+                <div class="lista-equipos">
+
+                    <?php if (count($equipos) > 0): ?>
+
+                        <?php foreach ($equipos as $equipo): ?>
+
+                            <label>
+
+                                <input
+                                    type="checkbox"
+                                    name="equipos[]"
+                                    value="<?php echo $equipo['id']; ?>"
+                                >
+
+                                <?php echo htmlspecialchars(
+                                    $equipo['codigo'] . ' - ' . $equipo['nombre'],
+                                    ENT_QUOTES | ENT_SUBSTITUTE,
+                                    'UTF-8'
+                                ); ?>
+
+                            </label>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <p>
+                            No hay equipos disponibles.
+                        </p>
+
+                    <?php endif; ?>
+
+                </div>
+
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Registrar préstamo
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
 
 </body>
 

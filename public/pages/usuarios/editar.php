@@ -41,112 +41,193 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Editar usuario - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
+
 <body>
 
-    <h2>Editar usuario</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/usuarios/index.php">
-            Volver a usuarios
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <?php if (isset($_GET['error'])): ?>
-        <p>No se pudo actualizar el usuario.</p>
-    <?php endif; ?>
+            <h2>Editar usuario</h2>
 
-    <form action="/actions/usuarios/editar.php" method="POST">
+            <div class="acciones-superiores">
 
-        <input type="hidden" name="id" value="<?php echo $usuario['id']; ?>">
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/usuarios/index.php"
+                >
+                    Volver a usuarios
+                </a>
 
-        <div>
-            <label>Nombre</label>
+            </div>
 
-            <input
-                type="text"
-                name="nombre"
-                value="<?php echo htmlspecialchars($usuario['nombre']); ?>"
-                required
+            <?php if (isset($_GET['error'])): ?>
+
+                <div class="mensaje-error">
+                    No se pudo actualizar el usuario.
+                </div>
+
+            <?php endif; ?>
+
+            <form
+                class="formulario"
+                action="/actions/usuarios/editar.php"
+                method="POST"
             >
-        </div>
 
-        <br>
+                <input
+                    type="hidden"
+                    name="id"
+                    value="<?php echo $usuario['id']; ?>"
+                >
 
-        <div>
-            <label>Usuario</label>
+                <div class="formulario-grupo">
 
-            <input
-                type="text"
-                name="username"
-                value="<?php echo htmlspecialchars($usuario['username']); ?>"
-                required
-            >
-        </div>
+                    <label for="nombre">
+                        Nombre
+                    </label>
 
-        <br>
-
-        <div>
-            <label>Rol</label>
-
-            <select name="rol_id" required>
-
-                <?php foreach ($roles as $rol): ?>
-
-                    <option
-                        value="<?php echo $rol['id']; ?>"
-                        <?php echo $rol['id'] == $usuario['rol_id'] ? 'selected' : ''; ?>
+                    <input
+                        type="text"
+                        name="nombre"
+                        id="nombre"
+                        value="<?php echo htmlspecialchars(
+                            $usuario['nombre'],
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        ); ?>"
+                        required
                     >
-                        <?php echo htmlspecialchars($rol['nombre']); ?>
-                    </option>
 
-                <?php endforeach; ?>
+                </div>
 
-            </select>
+                <div class="formulario-grupo">
+
+                    <label for="username">
+                        Usuario
+                    </label>
+
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        value="<?php echo htmlspecialchars(
+                            $usuario['username'],
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        ); ?>"
+                        required
+                    >
+
+                </div>
+
+                <div class="formulario-grupo">
+
+                    <label for="rol_id">
+                        Rol
+                    </label>
+
+                    <select
+                        name="rol_id"
+                        id="rol_id"
+                        required
+                    >
+
+                        <?php foreach ($roles as $rol): ?>
+
+                            <option
+                                value="<?php echo $rol['id']; ?>"
+                                <?php echo $rol['id'] == $usuario['rol_id'] ? 'selected' : ''; ?>
+                            >
+                                <?php echo htmlspecialchars(
+                                    $rol['nombre'],
+                                    ENT_QUOTES | ENT_SUBSTITUTE,
+                                    'UTF-8'
+                                ); ?>
+                            </option>
+
+                        <?php endforeach; ?>
+
+                    </select>
+
+                </div>
+
+                <div class="formulario-grupo">
+
+                    <label for="activo">
+                        Activo
+                    </label>
+
+                    <select
+                        name="activo"
+                        id="activo"
+                    >
+
+                        <option
+                            value="1"
+                            <?php echo $usuario['activo'] == 1 ? 'selected' : ''; ?>
+                        >
+                            Sí
+                        </option>
+
+                        <option
+                            value="0"
+                            <?php echo $usuario['activo'] == 0 ? 'selected' : ''; ?>
+                        >
+                            No
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="formulario-grupo">
+
+                    <label for="password">
+                        Nueva contraseña
+                    </label>
+
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                    >
+
+                    <small>
+                        Déjela vacía si no desea cambiarla.
+                    </small>
+
+                </div>
+
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Guardar cambios
+                </button>
+
+            </form>
+
         </div>
 
-        <br>
-
-        <div>
-            <label>Activo</label>
-
-            <select name="activo">
-
-                <option value="1"
-                    <?php echo $usuario['activo'] == 1 ? 'selected' : ''; ?>>
-                    Sí
-                </option>
-
-                <option value="0"
-                    <?php echo $usuario['activo'] == 0 ? 'selected' : ''; ?>>
-                    No
-                </option>
-
-            </select>
-        </div>
-
-        <br>
-
-        <div>
-            <label>Nueva contraseña</label>
-
-            <input type="password" name="password">
-
-            <small>
-                Déjela vacía si no desea cambiarla.
-            </small>
-        </div>
-
-        <br>
-
-        <button type="submit">
-            Guardar cambios
-        </button>
-
-    </form>
+    </div>
 
 </body>
+
 </html>

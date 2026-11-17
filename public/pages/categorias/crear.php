@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . '/../../../includes/auth.php';
@@ -17,59 +16,101 @@ if (empty($_SESSION['csrf_token'])) {
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Crear categoría - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Crear categoría</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/categorias/index.php">
-            Volver a categorías
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <?php if (isset($_GET['error'])): ?>
+            <h2>Crear categoría</h2>
 
-        <?php if ($_GET['error'] == 'duplicada'): ?>
+            <div class="acciones-superiores">
 
-            <p>Esta categoría ya existe.</p>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/categorias/index.php"
+                >
+                    Volver a categorías
+                </a>
 
-        <?php else: ?>
+            </div>
 
-            <p>No se pudo registrar la categoría.</p>
+            <?php if (isset($_GET['error'])): ?>
 
-        <?php endif; ?>
+                <?php if ($_GET['error'] === 'duplicada'): ?>
 
-    <?php endif; ?>
+                    <div class="mensaje-advertencia">
+                        Esta categoría ya existe.
+                    </div>
 
-    <form action="/actions/categorias/crear.php" method="POST">
+                <?php else: ?>
 
-        <input
-            type="hidden"
-            name="csrf_token"
-            value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-        >
+                    <div class="mensaje-error">
+                        No se pudo registrar la categoría.
+                    </div>
 
-        <div>
-            <label>Nombre de la categoría:</label>
+                <?php endif; ?>
 
-            <input
-                type="text"
-                name="nombre"
-                maxlength="100"
-                required
+            <?php endif; ?>
+
+            <form
+                class="formulario"
+                action="/actions/categorias/crear.php"
+                method="POST"
             >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo htmlspecialchars(
+                        $_SESSION['csrf_token'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
+
+                <div class="formulario-grupo">
+
+                    <label for="nombre">
+                        Nombre de la categoría
+                    </label>
+
+                    <input
+                        type="text"
+                        name="nombre"
+                        id="nombre"
+                        maxlength="100"
+                        required
+                    >
+
+                </div>
+
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Guardar categoría
+                </button>
+
+            </form>
+
         </div>
 
-        <br>
-
-        <button type="submit">
-            Guardar categoría
-        </button>
-
-    </form>
+    </div>
 
 </body>
 

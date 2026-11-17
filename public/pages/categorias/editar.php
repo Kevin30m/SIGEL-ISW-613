@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . '/../../../includes/auth.php';
@@ -42,68 +41,112 @@ if (empty($_SESSION['csrf_token'])) {
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Editar categoría - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Editar categoría</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/categorias/index.php">
-            Volver a categorías
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <?php if (isset($_GET['error'])): ?>
+            <h2>Editar categoría</h2>
 
-        <?php if ($_GET['error'] === 'duplicada'): ?>
+            <div class="acciones-superiores">
 
-            <p>Ya existe una categoría con ese nombre.</p>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/categorias/index.php"
+                >
+                    Volver a categorías
+                </a>
 
-        <?php else: ?>
+            </div>
 
-            <p>No se pudieron guardar los cambios.</p>
+            <?php if (isset($_GET['error'])): ?>
 
-        <?php endif; ?>
+                <?php if ($_GET['error'] === 'duplicada'): ?>
 
-    <?php endif; ?>
+                    <div class="mensaje-advertencia">
+                        Ya existe una categoría con ese nombre.
+                    </div>
 
-    <form action="/actions/categorias/editar.php" method="POST">
+                <?php else: ?>
 
-        <input
-            type="hidden"
-            name="id"
-            value="<?php echo $categoria['id']; ?>"
-        >
+                    <div class="mensaje-error">
+                        No se pudieron guardar los cambios.
+                    </div>
 
-        <input
-            type="hidden"
-            name="csrf_token"
-            value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-        >
+                <?php endif; ?>
 
-        <div>
+            <?php endif; ?>
 
-            <label>Nombre de la categoría:</label>
-
-            <input
-                type="text"
-                name="nombre"
-                maxlength="100"
-                value="<?php echo htmlspecialchars($categoria['nombre']); ?>"
-                required
+            <form
+                class="formulario"
+                action="/actions/categorias/editar.php"
+                method="POST"
             >
+
+                <input
+                    type="hidden"
+                    name="id"
+                    value="<?php echo $categoria['id']; ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo htmlspecialchars(
+                        $_SESSION['csrf_token'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
+
+                <div class="formulario-grupo">
+
+                    <label for="nombre">
+                        Nombre de la categoría
+                    </label>
+
+                    <input
+                        type="text"
+                        name="nombre"
+                        id="nombre"
+                        maxlength="100"
+                        value="<?php echo htmlspecialchars(
+                            $categoria['nombre'],
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        ); ?>"
+                        required
+                    >
+
+                </div>
+
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Guardar cambios
+                </button>
+
+            </form>
 
         </div>
 
-        <br>
-
-        <button type="submit">
-            Guardar cambios
-        </button>
-
-    </form>
+    </div>
 
 </body>
 

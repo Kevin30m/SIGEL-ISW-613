@@ -91,6 +91,7 @@ $sqlTotal = "SELECT COUNT(*)
 $stmtTotal = $conn->prepare($sqlTotal);
 
 if ($buscar !== '') {
+
     $busqueda = "%$buscar%";
 
     $stmtTotal->bindValue(':buscar1', $busqueda);
@@ -113,7 +114,7 @@ if ($pagina > $totalPaginas) {
 
 $inicio = ($pagina - 1) * $porPagina;
 
-// Consultar equipos y su primera imagen
+// Consultar equipos
 $sql = "SELECT equipos.id,
                equipos.codigo,
                equipos.nombre,
@@ -143,6 +144,7 @@ $sql = "SELECT equipos.id,
 $stmt = $conn->prepare($sql);
 
 if ($buscar !== '') {
+
     $busqueda = "%$buscar%";
 
     $stmt->bindValue(':buscar1', $busqueda);
@@ -164,206 +166,287 @@ $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Equipos - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Equipos</h2>
+    <div class="contenedor">
 
-    <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] === 'eliminado'): ?>
+        <div class="pagina-caja">
 
-        <p>El equipo fue eliminado correctamente.</p>
+            <h2>Equipos</h2>
 
-    <?php endif; ?>
+            <?php if (
+                isset($_GET['mensaje']) &&
+                $_GET['mensaje'] === 'eliminado'
+            ): ?>
 
-    <p>
-        <a href="/pages/dashboard.php">
-            Volver al inicio
-        </a>
-    </p>
-
-    <p>
-        <a href="/pages/equipos/crear.php">
-            Registrar equipo
-        </a>
-    </p>
-
-    <form method="GET" action="/pages/equipos/index.php">
-
-        <input
-            type="text"
-            name="buscar"
-            placeholder="Buscar equipo"
-            value="<?php echo htmlspecialchars($buscar); ?>"
-        >
-
-        <input type="hidden" name="pagina" value="1">
-
-        <label>Registros por página:</label>
-
-        <select name="por_pagina">
-
-            <?php foreach ($valoresPermitidos as $valor): ?>
-
-                <option
-                    value="<?php echo $valor; ?>"
-                    <?php echo $porPagina === $valor ? 'selected' : ''; ?>
-                >
-                    <?php echo $valor; ?>
-                </option>
-
-            <?php endforeach; ?>
-
-        </select>
-
-        <button type="submit">
-            Buscar
-        </button>
-
-        <a href="/pages/equipos/index.php">
-            Limpiar
-        </a>
-
-    </form>
-
-    <br>
-
-    <table border="1" cellpadding="5">
-
-        <thead>
-
-            <tr>
-                <th>ID</th>
-                <th>Código</th>
-                <th>Nombre</th>
-                <th>Imagen</th>
-                <th>Categoría</th>
-                <th>Estado</th>
-                <th>Versión</th>
-                <th>Acciones</th>
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            <?php if (count($equipos) > 0): ?>
-
-                <?php foreach ($equipos as $equipo): ?>
-
-                    <tr>
-
-                        <td>
-                            <?php echo $equipo['id']; ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($equipo['codigo']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($equipo['nombre']); ?>
-                        </td>
-
-                        <td>
-
-                            <?php if (!empty($equipo['imagen_id'])): ?>
-
-                                <img
-                                    src="/actions/equipos/imagen.php?id=<?php echo (int) $equipo['imagen_id']; ?>"
-                                    alt="Imagen del equipo"
-                                    width="100"
-                                >
-
-                            <?php else: ?>
-
-                                Sin imagen
-
-                            <?php endif; ?>
-
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($equipo['categoria']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($equipo['estado']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($equipo['version'] ?? ''); ?>
-                        </td>
-
-                        <td>
-
-                            <a href="/pages/equipos/editar.php?id=<?php echo $equipo['id']; ?>">
-                                Editar
-                            </a>
-
-                            |
-
-                            <form
-                                action="/actions/equipos/eliminar.php"
-                                method="POST"
-                                style="display:inline;"
-                            >
-
-                                <input
-                                    type="hidden"
-                                    name="id"
-                                    value="<?php echo $equipo['id']; ?>"
-                                >
-
-                                <input
-                                    type="hidden"
-                                    name="csrf_token"
-                                    value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-                                >
-
-                                <button
-                                    type="submit"
-                                    onclick="return confirm('¿Desea eliminar este equipo?');"
-                                >
-                                    Eliminar
-                                </button>
-
-                            </form>
-
-                        </td>
-
-                    </tr>
-
-                <?php endforeach; ?>
-
-            <?php else: ?>
-
-                <tr>
-                    <td colspan="8">
-                        No se encontraron equipos.
-                    </td>
-                </tr>
+                <div class="mensaje-exito">
+                    El equipo fue eliminado correctamente.
+                </div>
 
             <?php endif; ?>
 
-        </tbody>
+            <div class="acciones-superiores">
 
-    </table>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/dashboard.php"
+                >
+                    Volver al inicio
+                </a>
 
-    <br>
+                <a
+                    class="boton"
+                    href="/pages/equipos/crear.php"
+                >
+                    Registrar equipo
+                </a>
 
-    <?php if ($totalEquipos > 0 && $totalPaginas > 1): ?>
+            </div>
 
-        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+            <form
+                class="formulario-busqueda"
+                method="GET"
+                action="/pages/equipos/index.php"
+            >
 
-            <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>">
-                <?php echo $i; ?>
-            </a>
+                <input
+                    type="text"
+                    name="buscar"
+                    placeholder="Buscar equipo"
+                    value="<?php echo htmlspecialchars(
+                        $buscar,
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
 
-        <?php endfor; ?>
+                <input
+                    type="hidden"
+                    name="pagina"
+                    value="1"
+                >
 
-    <?php endif; ?>
+                <label>
+                    Registros por página:
+                </label>
+
+                <select name="por_pagina">
+
+                    <?php foreach ($valoresPermitidos as $valor): ?>
+
+                        <option
+                            value="<?php echo $valor; ?>"
+                            <?php echo $porPagina === $valor ? 'selected' : ''; ?>
+                        >
+                            <?php echo $valor; ?>
+                        </option>
+
+                    <?php endforeach; ?>
+
+                </select>
+
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Buscar
+                </button>
+
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/equipos/index.php"
+                >
+                    Limpiar
+                </a>
+
+            </form>
+
+            <table class="tabla">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Imagen</th>
+                        <th>Categoría</th>
+                        <th>Estado</th>
+                        <th>Versión</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <?php if (count($equipos) > 0): ?>
+
+                        <?php foreach ($equipos as $equipo): ?>
+
+                            <tr>
+
+                                <td>
+                                    <?php echo $equipo['id']; ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $equipo['codigo'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $equipo['nombre'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+
+                                    <?php if (!empty($equipo['imagen_id'])): ?>
+
+                                        <img
+                                            src="/actions/equipos/imagen.php?id=<?php echo (int) $equipo['imagen_id']; ?>"
+                                            alt="Imagen del equipo"
+                                            width="90"
+                                        >
+
+                                    <?php else: ?>
+
+                                        Sin imagen
+
+                                    <?php endif; ?>
+
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $equipo['categoria'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td class="estado-disponible">
+                                    <?php echo htmlspecialchars(
+                                        $equipo['estado'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $equipo['version'] ?? '',
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+
+                                    <a
+                                        class="boton"
+                                        href="/pages/equipos/editar.php?id=<?php echo $equipo['id']; ?>"
+                                    >
+                                        Editar
+                                    </a>
+
+                                    <form
+                                        action="/actions/equipos/eliminar.php"
+                                        method="POST"
+                                        style="display:inline;"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="id"
+                                            value="<?php echo $equipo['id']; ?>"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?php echo htmlspecialchars(
+                                                $_SESSION['csrf_token'],
+                                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                                'UTF-8'
+                                            ); ?>"
+                                        >
+
+                                        <button
+                                            class="boton boton-eliminar"
+                                            type="submit"
+                                            onclick="return confirm('¿Desea eliminar este equipo?');"
+                                        >
+                                            Eliminar
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <tr>
+
+                            <td colspan="8">
+                                No se encontraron equipos.
+                            </td>
+
+                        </tr>
+
+                    <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+            <?php if (
+                $totalEquipos > 0 &&
+                $totalPaginas > 1
+            ): ?>
+
+                <div class="paginacion">
+
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+
+                        <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>">
+                            <?php echo $i; ?>
+                        </a>
+
+                    <?php endfor; ?>
+
+                </div>
+
+            <?php endif; ?>
+
+        </div>
+
+    </div>
 
 </body>
 

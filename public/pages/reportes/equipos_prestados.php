@@ -14,7 +14,7 @@ if ($fechaInicio !== '' && $fechaFin !== '') {
 
     if ($fechaFin >= $fechaInicio) {
 
-        $sql = "SELECT 
+        $sql = "SELECT
                     equipos.id,
                     equipos.codigo,
                     equipos.nombre,
@@ -36,7 +36,7 @@ if ($fechaInicio !== '' && $fechaFin !== '') {
                     'devuelto'
                 )
 
-                GROUP BY 
+                GROUP BY
                     equipos.id,
                     equipos.codigo,
                     equipos.nombre
@@ -62,126 +62,185 @@ if ($fechaInicio !== '' && $fechaFin !== '') {
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Equipos más prestados - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Equipos más prestados</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/dashboard.php">
-            Volver al inicio
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <form method="GET">
+            <h2>Equipos más prestados</h2>
 
-        <p>
-            <label>Fecha inicial:</label><br>
+            <div class="acciones-superiores">
 
-            <input
-                type="date"
-                name="fecha_inicio"
-                value="<?php echo htmlspecialchars($fechaInicio); ?>"
-                required
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/dashboard.php"
+                >
+                    Volver al inicio
+                </a>
+
+            </div>
+
+            <form
+                class="formulario-reporte"
+                method="GET"
             >
-        </p>
 
-        <p>
-            <label>Fecha final:</label><br>
+                <div>
 
-            <input
-                type="date"
-                name="fecha_fin"
-                value="<?php echo htmlspecialchars($fechaFin); ?>"
-                required
-            >
-        </p>
+                    <label>
+                        Fecha inicial
+                    </label>
 
-        <button type="submit">
-            Generar reporte
-        </button>
+                    <input
+                        type="date"
+                        name="fecha_inicio"
+                        value="<?php echo htmlspecialchars(
+                            $fechaInicio,
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        ); ?>"
+                        required
+                    >
 
-    </form>
+                </div>
 
-    <?php if (
-        $fechaInicio !== '' &&
-        $fechaFin !== '' &&
-        $fechaFin < $fechaInicio
-    ): ?>
+                <div>
 
-        <p>
-            La fecha final no puede ser menor que la fecha inicial.
-        </p>
+                    <label>
+                        Fecha final
+                    </label>
 
-    <?php endif; ?>
+                    <input
+                        type="date"
+                        name="fecha_fin"
+                        value="<?php echo htmlspecialchars(
+                            $fechaFin,
+                            ENT_QUOTES | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        ); ?>"
+                        required
+                    >
 
-    <?php if (
-        $fechaInicio !== '' &&
-        $fechaFin !== '' &&
-        $fechaFin >= $fechaInicio
-    ): ?>
+                </div>
 
-        <hr>
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Generar reporte
+                </button>
 
-        <h3>Resultados</h3>
+            </form>
 
-        <?php if (count($resultados) > 0): ?>
+            <?php if (
+                $fechaInicio !== '' &&
+                $fechaFin !== '' &&
+                $fechaFin < $fechaInicio
+            ): ?>
 
-            <table border="1" cellpadding="5">
+                <div class="mensaje-advertencia">
+                    La fecha final no puede ser menor que la fecha inicial.
+                </div>
 
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Equipo</th>
-                        <th>Total de préstamos</th>
-                    </tr>
-                </thead>
+            <?php endif; ?>
 
-                <tbody>
+            <?php if (
+                $fechaInicio !== '' &&
+                $fechaFin !== '' &&
+                $fechaFin >= $fechaInicio
+            ): ?>
 
-                    <?php foreach ($resultados as $resultado): ?>
+                <div class="seccion-resultados">
 
-                        <tr>
+                    <h3>Resultados</h3>
 
-                            <td>
-                                <?php echo htmlspecialchars($resultado['codigo']); ?>
-                            </td>
+                    <?php if (count($resultados) > 0): ?>
 
-                            <td>
-                                <?php echo htmlspecialchars($resultado['nombre']); ?>
-                            </td>
+                        <table class="tabla">
 
-                            <td>
-                                <?php echo $resultado['total_prestamos']; ?>
-                            </td>
+                            <thead>
 
-                        </tr>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Equipo</th>
+                                    <th>Total de préstamos</th>
+                                </tr>
 
-                    <?php endforeach; ?>
+                            </thead>
 
-                </tbody>
+                            <tbody>
 
-            </table>
+                                <?php foreach ($resultados as $resultado): ?>
 
-            <br>
+                                    <tr>
 
-            <a
-                href="/actions/reportes/exportar_equipos.php?fecha_inicio=<?php echo urlencode($fechaInicio); ?>&fecha_fin=<?php echo urlencode($fechaFin); ?>"
-            >
-                Exportar a CSV
-            </a>
+                                        <td>
+                                            <?php echo htmlspecialchars(
+                                                $resultado['codigo'],
+                                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                                'UTF-8'
+                                            ); ?>
+                                        </td>
 
-        <?php else: ?>
+                                        <td>
+                                            <?php echo htmlspecialchars(
+                                                $resultado['nombre'],
+                                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                                'UTF-8'
+                                            ); ?>
+                                        </td>
 
-            <p>
-                No se encontraron préstamos en ese rango de fechas.
-            </p>
+                                        <td class="total-prestamos">
+                                            <?php echo (int) $resultado['total_prestamos']; ?>
+                                        </td>
 
-        <?php endif; ?>
+                                    </tr>
 
-    <?php endif; ?>
+                                <?php endforeach; ?>
+
+                            </tbody>
+
+                        </table>
+
+                        <br>
+
+                        <a
+                            class="boton"
+                            href="/actions/reportes/exportar_equipos.php?fecha_inicio=<?php echo urlencode($fechaInicio); ?>&fecha_fin=<?php echo urlencode($fechaFin); ?>"
+                        >
+                            Exportar a CSV
+                        </a>
+
+                    <?php else: ?>
+
+                        <div class="mensaje-advertencia">
+                            No se encontraron préstamos en ese rango de fechas.
+                        </div>
+
+                    <?php endif; ?>
+
+                </div>
+
+            <?php endif; ?>
+
+        </div>
+
+    </div>
 
 </body>
 

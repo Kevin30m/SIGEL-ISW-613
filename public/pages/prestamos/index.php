@@ -157,155 +157,223 @@ $prestamos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Préstamos - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Préstamos</h2>
+    <div class="contenedor">
 
-    <p>
-        <a href="/pages/dashboard.php">
-            Volver al inicio
-        </a>
-    </p>
+        <div class="pagina-caja">
 
-    <p>
-        <a href="/pages/prestamos/crear.php">
-            Registrar préstamo
-        </a>
-    </p>
+            <h2>Préstamos</h2>
 
-    <form method="GET">
+            <div class="acciones-superiores">
 
-        <input
-            type="text"
-            name="buscar"
-            placeholder="Buscar préstamo"
-            value="<?php echo htmlspecialchars($buscar); ?>"
-        >
-
-        <label>Registros por página:</label>
-
-        <select name="por_pagina">
-
-            <?php foreach ($valoresPermitidos as $valor): ?>
-
-                <option
-                    value="<?php echo $valor; ?>"
-                    <?php echo $porPagina === $valor ? 'selected' : ''; ?>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/dashboard.php"
                 >
-                    <?php echo $valor; ?>
-                </option>
+                    Volver al inicio
+                </a>
 
-            <?php endforeach; ?>
+                <a
+                    class="boton"
+                    href="/pages/prestamos/crear.php"
+                >
+                    Registrar préstamo
+                </a>
 
-        </select>
+            </div>
 
-        <button type="submit">
-            Buscar
-        </button>
+            <form
+                class="formulario-busqueda"
+                method="GET"
+            >
 
-        <a href="/pages/prestamos/index.php">
-            Limpiar
-        </a>
+                <input
+                    type="text"
+                    name="buscar"
+                    placeholder="Buscar préstamo"
+                    value="<?php echo htmlspecialchars(
+                        $buscar,
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
 
-    </form>
+                <label>
+                    Registros por página:
+                </label>
 
-    <br>
+                <select name="por_pagina">
 
-    <table border="1" cellpadding="5">
+                    <?php foreach ($valoresPermitidos as $valor): ?>
 
-        <thead>
+                        <option
+                            value="<?php echo $valor; ?>"
+                            <?php echo $porPagina === $valor ? 'selected' : ''; ?>
+                        >
+                            <?php echo $valor; ?>
+                        </option>
 
-            <tr>
-                <th>ID</th>
-                <th>Profesor</th>
-                <th>Operador</th>
-                <th>Fecha inicio</th>
-                <th>Fecha fin</th>
-                <th>Estado</th>
-                <th>Días mora</th>
-                <th>Acciones</th>
-            </tr>
+                    <?php endforeach; ?>
 
-        </thead>
+                </select>
 
-        <tbody>
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Buscar
+                </button>
 
-            <?php if (count($prestamos) > 0): ?>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/prestamos/index.php"
+                >
+                    Limpiar
+                </a>
 
-                <?php foreach ($prestamos as $prestamo): ?>
+            </form>
+
+            <table class="tabla">
+
+                <thead>
 
                     <tr>
-
-                        <td>
-                            <?php echo $prestamo['id']; ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($prestamo['profesor']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($prestamo['operador']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($prestamo['fecha_inicio']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($prestamo['fecha_fin']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($prestamo['estado']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo $prestamo['dias_mora']; ?>
-                        </td>
-
-                        <td>
-
-                            <a href="/pages/prestamos/detalle.php?id=<?php echo $prestamo['id']; ?>">
-                                Ver detalle
-                            </a>
-
-                        </td>
-
+                        <th>ID</th>
+                        <th>Profesor</th>
+                        <th>Operador</th>
+                        <th>Fecha inicio</th>
+                        <th>Fecha fin</th>
+                        <th>Estado</th>
+                        <th>Días mora</th>
+                        <th>Acciones</th>
                     </tr>
 
-                <?php endforeach; ?>
+                </thead>
 
-            <?php else: ?>
+                <tbody>
 
-                <tr>
-                    <td colspan="8">
-                        No hay préstamos registrados.
-                    </td>
-                </tr>
+                    <?php if (count($prestamos) > 0): ?>
+
+                        <?php foreach ($prestamos as $prestamo): ?>
+
+                            <tr>
+
+                                <td>
+                                    <?php echo $prestamo['id']; ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $prestamo['profesor'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $prestamo['operador'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $prestamo['fecha_inicio'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $prestamo['fecha_fin'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td class="estado-prestamo">
+                                    <?php echo htmlspecialchars(
+                                        $prestamo['estado'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td class="mora">
+                                    <?php echo (int) $prestamo['dias_mora']; ?>
+                                </td>
+
+                                <td>
+
+                                    <a
+                                        class="boton"
+                                        href="/pages/prestamos/detalle.php?id=<?php echo $prestamo['id']; ?>"
+                                    >
+                                        Ver detalle
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <tr>
+
+                            <td colspan="8">
+                                No hay préstamos registrados.
+                            </td>
+
+                        </tr>
+
+                    <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+            <?php if (
+                $totalPrestamos > 0 &&
+                $totalPaginas > 1
+            ): ?>
+
+                <div class="paginacion">
+
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+
+                        <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>">
+                            <?php echo $i; ?>
+                        </a>
+
+                    <?php endfor; ?>
+
+                </div>
 
             <?php endif; ?>
 
-        </tbody>
+        </div>
 
-    </table>
-
-    <br>
-
-    <?php if ($totalPrestamos > 0 && $totalPaginas > 1): ?>
-
-        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-
-            <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>">
-                <?php echo $i; ?>
-            </a>
-
-        <?php endfor; ?>
-
-    <?php endif; ?>
+    </div>
 
 </body>
 

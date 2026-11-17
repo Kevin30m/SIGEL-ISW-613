@@ -1,0 +1,470 @@
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 0;
+    color: #222;
+}
+
+.contenedor {
+    width: 90%;
+    max-width: 1050px;
+    margin: 35px auto;
+}
+
+
+
+
+
+/* Dashboard */
+.encabezado {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-top: 5px solid #2f6fa3;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.encabezado h1 {
+    margin: 0 0 10px 0;
+    color: #2f6fa3;
+}
+
+.encabezado h2 {
+    margin-bottom: 10px;
+}
+
+.usuario {
+    color: #555;
+}
+
+.menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.tarjeta {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #222;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.tarjeta:hover {
+    background-color: #eef5fa;
+    border-color: #2f6fa3;
+}
+
+.tarjeta h3 {
+    margin-top: 5px;
+    margin-bottom: 10px;
+    color: #2f6fa3;
+}
+
+.cerrar-sesion {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 10px 18px;
+    background-color: #444;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.cerrar-sesion:hover {
+    background-color: #222;
+}
+
+
+
+
+
+/* Login */
+.login-contenedor {
+    width: 90%;
+    max-width: 420px;
+    margin: 70px auto;
+}
+
+.login-caja {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    border-top: 5px solid #2f6fa3;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+}
+
+.login-caja h1 {
+    margin-top: 0;
+    color: #2f6fa3;
+}
+
+.login-caja label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.login-caja input[type="text"],
+.login-caja input[type="password"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+}
+
+.campo-password {
+    display: flex;
+    gap: 8px;
+}
+
+.campo-password input {
+    flex: 1;
+}
+
+.boton-ojo {
+    padding: 8px 12px;
+    border: 1px solid #bbb;
+    background-color: #eeeeee;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.boton-login {
+    width: 100%;
+    padding: 11px;
+    background-color: #2f6fa3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.boton-login:hover {
+    background-color: #245980;
+}
+
+
+
+
+
+/* Páginas internas */
+.pagina-caja {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    border-top: 5px solid #2f6fa3;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.pagina-caja h2 {
+    margin-top: 0;
+    color: #2f6fa3;
+}
+
+.acciones-superiores {
+    margin-bottom: 20px;
+}
+
+
+
+
+
+/* Botones */
+.boton {
+    display: inline-block;
+    padding: 9px 14px;
+    background-color: #2f6fa3;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.boton:hover {
+    background-color: #245980;
+}
+
+.boton-secundario {
+    background-color: #666;
+}
+
+.boton-secundario:hover {
+    background-color: #444;
+}
+
+.boton-eliminar,
+.boton-cancelar {
+    background-color: #a94442;
+}
+
+.boton-eliminar:hover,
+.boton-cancelar:hover {
+    background-color: #843534;
+}
+
+
+
+
+
+/* Mensajes */
+.mensaje-error {
+    background-color: #f8dddd;
+    border: 1px solid #d9aaaa;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.mensaje-exito {
+    background-color: #e5f4e5;
+    border: 1px solid #b7d8b7;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.mensaje-advertencia {
+    background-color: #fff1d6;
+    border: 1px solid #e1c78f;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+
+
+
+
+/* Búsqueda y paginación */
+.formulario-busqueda {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.formulario-busqueda input[type="text"] {
+    padding: 9px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    min-width: 220px;
+}
+
+.formulario-busqueda select {
+    padding: 9px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.paginacion {
+    margin-top: 20px;
+}
+
+.paginacion a {
+    display: inline-block;
+    padding: 6px 10px;
+    margin-right: 4px;
+    background-color: #eeeeee;
+    color: #2f6fa3;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.paginacion a:hover {
+    background-color: #dceaf5;
+}
+
+
+
+
+
+/* Tablas */
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+.tabla th,
+.tabla td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.tabla th {
+    background-color: #eef5fa;
+    color: #2f6fa3;
+}
+
+.tabla tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.tabla img {
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+
+
+
+
+/* Formularios */
+.formulario {
+    max-width: 500px;
+}
+
+.formulario-grupo {
+    margin-bottom: 15px;
+}
+
+.formulario-grupo label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.formulario-grupo input,
+.formulario-grupo select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.formulario-grupo input[type="datetime-local"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    background-color: white;
+}
+
+
+
+
+
+/* Equipos */
+.estado-disponible {
+    color: #2f6fa3;
+    font-weight: bold;
+}
+
+.imagen-actual {
+    margin-bottom: 15px;
+}
+
+.imagen-actual img {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.recientes {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.recientes ul {
+    padding-left: 20px;
+}
+
+.recientes a {
+    color: #2f6fa3;
+}
+
+
+
+
+
+/* Préstamos */
+.estado-prestamo {
+    font-weight: bold;
+    color: #2f6fa3;
+}
+
+.mora {
+    font-weight: bold;
+}
+
+.lista-equipos {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.lista-equipos label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.detalle-prestamo {
+    margin-bottom: 20px;
+}
+
+.detalle-prestamo p {
+    margin: 8px 0;
+}
+
+.acciones-prestamo {
+    margin-top: 20px;
+}
+
+.acciones-prestamo form {
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+
+
+
+
+/* Reportes */
+.formulario-reporte {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.formulario-reporte div {
+    display: flex;
+    flex-direction: column;
+}
+
+.formulario-reporte label {
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.formulario-reporte input[type="date"] {
+    padding: 9px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+}
+
+.seccion-resultados {
+    margin-top: 25px;
+}
+
+.total-prestamos {
+    font-weight: bold;
+    color: #2f6fa3;
+}

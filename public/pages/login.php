@@ -9,94 +9,127 @@ require_once __DIR__ . '/../../includes/session.php';
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Login - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Iniciar sesión</h2>
+    <div class="login-contenedor">
 
-    <?php if (isset($_GET['error'])): ?>
+        <div class="login-caja">
 
-        <?php if ($_GET['error'] === 'blocked'): ?>
+            <h1>SIGEL</h1>
 
-            <p>La cuenta está bloqueada por intentos fallidos.</p>
+            <h2>Iniciar sesión</h2>
 
-        <?php else: ?>
+            <?php if (isset($_GET['error'])): ?>
 
-            <p>Usuario o contraseña incorrectos.</p>
+                <div class="mensaje-error">
 
-        <?php endif; ?>
+                    <?php if ($_GET['error'] === 'blocked'): ?>
 
-    <?php endif; ?>
+                        La cuenta está bloqueada por intentos fallidos.
 
-    <form action="/actions/login.php" method="POST">
+                    <?php elseif ($_GET['error'] === 'session_expired'): ?>
 
-        <div>
+                        La sesión expiró por inactividad.
 
-            <label>Usuario</label>
+                    <?php else: ?>
 
-            <input
-                type="text"
-                name="username"
-                required
-            >
+                        Usuario o contraseña incorrectos.
 
-        </div>
+                    <?php endif; ?>
 
-        <br>
+                </div>
 
-        <div>
+            <?php endif; ?>
 
-            <label>Contraseña</label>
+            <form action="/actions/login.php" method="POST">
 
-            <input
-                type="password"
-                name="password"
-                id="password"
-                required
-            >
+                <p>
 
-            <button
-                type="button"
-                onclick="mostrarPassword()"
-                aria-label="Mostrar u ocultar contraseña"
-            >
-                👁
-            </button>
+                    <label for="username">
+                        Usuario
+                    </label>
 
-        </div>
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        required
+                    >
 
-        <br>
+                </p>
 
-        <div>
+                <p>
 
-            <label>
+                    <label for="password">
+                        Contraseña
+                    </label>
 
-                <input
-                    type="checkbox"
-                    name="remember_me"
+                    <div class="campo-password">
+
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            required
+                        >
+
+                        <button
+                            class="boton-ojo"
+                            type="button"
+                            onclick="mostrarPassword()"
+                            aria-label="Mostrar u ocultar contraseña"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+
+                </p>
+
+                <p>
+
+                    <label>
+
+                        <input
+                            type="checkbox"
+                            name="remember_me"
+                        >
+
+                        Recordarme
+
+                    </label>
+
+                </p>
+
+                <button
+                    class="boton-login"
+                    type="submit"
                 >
+                    Iniciar sesión
+                </button>
 
-                Recordarme
-
-            </label>
+            </form>
 
         </div>
 
-        <br>
-
-        <button type="submit">
-            Iniciar sesión
-        </button>
-
-    </form>
+    </div>
 
     <script>
 
         function mostrarPassword() {
 
-            const campoPassword = document.getElementById('password');
+            const campoPassword =
+                document.getElementById('password');
 
             if (campoPassword.type === 'password') {
 

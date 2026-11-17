@@ -1,4 +1,3 @@
-
 <?php
 
 require_once __DIR__ . '/../../../includes/auth.php';
@@ -138,189 +137,253 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <head>
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Categorías - SIGEL</title>
+
+    <link
+        rel="stylesheet"
+        href="/css/style.css"
+    >
 </head>
 
 <body>
 
-    <h2>Categorías</h2>
+    <div class="contenedor">
 
-    <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] === 'eliminada'): ?>
+        <div class="pagina-caja">
 
-        <p>La categoría fue eliminada correctamente.</p>
+            <h2>Categorías</h2>
 
-    <?php endif; ?>
+            <?php if (
+                isset($_GET['mensaje']) &&
+                $_GET['mensaje'] === 'eliminada'
+            ): ?>
 
-    <?php if (isset($_GET['error']) && $_GET['error'] === 'relacionada'): ?>
-
-        <p>No se puede eliminar porque tiene equipos activos.</p>
-
-    <?php endif; ?>
-
-    <?php if (isset($_GET['error']) && $_GET['error'] === '1'): ?>
-
-        <p>No se pudo realizar la operación. Intente nuevamente.</p>
-
-    <?php endif; ?>
-
-    <p>
-        <a href="/pages/dashboard.php">
-            Volver al inicio
-        </a>
-    </p>
-
-    <p>
-        <a href="/pages/categorias/crear.php">
-            Crear categoría
-        </a>
-    </p>
-
-    <form method="GET" action="/pages/categorias/index.php">
-
-        <input
-            type="text"
-            name="buscar"
-            placeholder="Buscar categoría"
-            value="<?php echo htmlspecialchars(
-                $buscar,
-                ENT_QUOTES | ENT_SUBSTITUTE,
-                'UTF-8'
-            ); ?>"
-        >
-
-        <input type="hidden" name="pagina" value="1">
-
-        <label>Registros por página:</label>
-
-        <select name="por_pagina">
-
-            <?php foreach ($valoresPermitidos as $valor): ?>
-
-                <option
-                    value="<?php echo $valor; ?>"
-                    <?php echo $porPagina === $valor ? 'selected' : ''; ?>
-                >
-                    <?php echo $valor; ?>
-                </option>
-
-            <?php endforeach; ?>
-
-        </select>
-
-        <button type="submit">
-            Buscar
-        </button>
-
-        <a href="/pages/categorias/index.php">
-            Limpiar
-        </a>
-
-    </form>
-
-    <br>
-
-    <table border="1" cellpadding="5">
-
-        <thead>
-
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Acciones</th>
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            <?php if (count($categorias) > 0): ?>
-
-                <?php foreach ($categorias as $categoria): ?>
-
-                    <tr>
-
-                        <td>
-                            <?php echo $categoria['id']; ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars(
-                                $categoria['nombre'],
-                                ENT_QUOTES | ENT_SUBSTITUTE,
-                                'UTF-8'
-                            ); ?>
-                        </td>
-
-                        <td>
-
-                            <a href="/pages/categorias/editar.php?id=<?php echo $categoria['id']; ?>">
-                                Editar
-                            </a>
-
-                            |
-
-                            <form
-                                action="/actions/categorias/eliminar.php"
-                                method="POST"
-                                style="display:inline;"
-                            >
-
-                                <input
-                                    type="hidden"
-                                    name="id"
-                                    value="<?php echo $categoria['id']; ?>"
-                                >
-
-                                <input
-                                    type="hidden"
-                                    name="csrf_token"
-                                    value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>"
-                                >
-
-                                <button
-                                    type="submit"
-                                    onclick="return confirm('¿Desea eliminar esta categoría?');"
-                                >
-                                    Eliminar
-                                </button>
-
-                            </form>
-
-                        </td>
-
-                    </tr>
-
-                <?php endforeach; ?>
-
-            <?php else: ?>
-
-                <tr>
-                    <td colspan="3">
-                        No se encontraron categorías.
-                    </td>
-                </tr>
+                <div class="mensaje-exito">
+                    La categoría fue eliminada correctamente.
+                </div>
 
             <?php endif; ?>
 
-        </tbody>
+            <?php if (
+                isset($_GET['error']) &&
+                $_GET['error'] === 'relacionada'
+            ): ?>
 
-    </table>
+                <div class="mensaje-advertencia">
+                    No se puede eliminar porque tiene equipos activos.
+                </div>
 
-    <br>
+            <?php endif; ?>
 
-    <?php if ($totalCategorias > 0 && $totalPaginas > 1): ?>
+            <?php if (
+                isset($_GET['error']) &&
+                $_GET['error'] === '1'
+            ): ?>
 
-        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+                <div class="mensaje-error">
+                    No se pudo realizar la operación. Intente nuevamente.
+                </div>
 
-            <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>">
-                <?php echo $i; ?>
-            </a>
+            <?php endif; ?>
 
-        <?php endfor; ?>
+            <div class="acciones-superiores">
 
-    <?php endif; ?>
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/dashboard.php"
+                >
+                    Volver al inicio
+                </a>
+
+                <a
+                    class="boton"
+                    href="/pages/categorias/crear.php"
+                >
+                    Crear categoría
+                </a>
+
+            </div>
+
+            <form
+                class="formulario-busqueda"
+                method="GET"
+                action="/pages/categorias/index.php"
+            >
+
+                <input
+                    type="text"
+                    name="buscar"
+                    placeholder="Buscar categoría"
+                    value="<?php echo htmlspecialchars(
+                        $buscar,
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="pagina"
+                    value="1"
+                >
+
+                <label>
+                    Registros por página:
+                </label>
+
+                <select name="por_pagina">
+
+                    <?php foreach ($valoresPermitidos as $valor): ?>
+
+                        <option
+                            value="<?php echo $valor; ?>"
+                            <?php echo $porPagina === $valor ? 'selected' : ''; ?>
+                        >
+                            <?php echo $valor; ?>
+                        </option>
+
+                    <?php endforeach; ?>
+
+                </select>
+
+                <button
+                    class="boton"
+                    type="submit"
+                >
+                    Buscar
+                </button>
+
+                <a
+                    class="boton boton-secundario"
+                    href="/pages/categorias/index.php"
+                >
+                    Limpiar
+                </a>
+
+            </form>
+
+            <table class="tabla">
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <?php if (count($categorias) > 0): ?>
+
+                        <?php foreach ($categorias as $categoria): ?>
+
+                            <tr>
+
+                                <td>
+                                    <?php echo $categoria['id']; ?>
+                                </td>
+
+                                <td>
+                                    <?php echo htmlspecialchars(
+                                        $categoria['nombre'],
+                                        ENT_QUOTES | ENT_SUBSTITUTE,
+                                        'UTF-8'
+                                    ); ?>
+                                </td>
+
+                                <td>
+
+                                    <a
+                                        class="boton"
+                                        href="/pages/categorias/editar.php?id=<?php echo $categoria['id']; ?>"
+                                    >
+                                        Editar
+                                    </a>
+
+                                    <form
+                                        action="/actions/categorias/eliminar.php"
+                                        method="POST"
+                                        style="display:inline;"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="id"
+                                            value="<?php echo $categoria['id']; ?>"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?php echo htmlspecialchars(
+                                                $_SESSION['csrf_token'],
+                                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                                'UTF-8'
+                                            ); ?>"
+                                        >
+
+                                        <button
+                                            class="boton boton-eliminar"
+                                            type="submit"
+                                            onclick="return confirm('¿Desea eliminar esta categoría?');"
+                                        >
+                                            Eliminar
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <tr>
+                            <td colspan="3">
+                                No se encontraron categorías.
+                            </td>
+                        </tr>
+
+                    <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+            <?php if (
+                $totalCategorias > 0 &&
+                $totalPaginas > 1
+            ): ?>
+
+                <div class="paginacion">
+
+                    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+
+                        <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>">
+                            <?php echo $i; ?>
+                        </a>
+
+                    <?php endfor; ?>
+
+                </div>
+
+            <?php endif; ?>
+
+        </div>
+
+    </div>
 
 </body>
 
 </html>
-
