@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Obtener los datos
+// Obtener datos
 $codigo = trim($_POST['codigo'] ?? '');
 $nombre = trim($_POST['nombre'] ?? '');
 $categoria_id = (int) ($_POST['categoria_id'] ?? 0);
@@ -19,7 +19,7 @@ $estado = trim($_POST['estado'] ?? '');
 $version = trim($_POST['version'] ?? '');
 $token = $_POST['csrf_token'] ?? '';
 
-// Comprobar el token
+// Validar token CSRF
 if (
     empty($_SESSION['csrf_token']) ||
     !hash_equals($_SESSION['csrf_token'], $token)
@@ -28,16 +28,16 @@ if (
     exit();
 }
 
-// Comprobar los datos
+// Validar datos según schema.sql
 if (
     $codigo === '' ||
     $nombre === '' ||
     $categoria_id <= 0 ||
     $estado === '' ||
     strlen($codigo) > 50 ||
-    mb_strlen($nombre) > 100 ||
-    mb_strlen($estado) > 30 ||
-    mb_strlen($version) > 50
+    strlen($nombre) > 100 ||
+    strlen($estado) > 30 ||
+    strlen($version) > 50
 ) {
     header('Location: /pages/equipos/crear.php?error=1');
     exit();
@@ -47,7 +47,8 @@ if (
 $sql = "SELECT id
         FROM categorias
         WHERE id = ?
-        AND eliminado_en IS NULL";
+        AND eliminado_en IS NULL
+        LIMIT 1";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute([$categoria_id]);
@@ -57,11 +58,11 @@ if (!$stmt->fetch()) {
     exit();
 }
 
-// Comprobar si el código ya existe
+// Comprobar que el código no exista
 $sql = "SELECT id
         FROM equipos
         WHERE codigo = ?
-        AND eliminado_en IS NULL";
+        LIMIT 1";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute([$codigo]);
@@ -71,20 +72,25 @@ if ($stmt->fetch()) {
     exit();
 }
 
-// Preparar la carpeta de imágenes
+// Carpeta donde se guardan las imágenes
 $carpetaImagenes = dirname(__DIR__, 3) . '/storage/equipment_images/';
 
-// Lista para guardar los archivos
+// Archivos guardados durante la operación
 $archivosGuardados = [];
 
 try {
 
-    // Iniciar transacción
     $conn->beginTransaction();
 
-    // Registrar el equipo
+    // Crear equipo
     $sql = "INSERT INTO equipos
-            (categoria_id, codigo, nombre, estado, version)
+            (
+                categoria_id,
+                codigo,
+                nombre,
+                estado,
+                version
+            )
             VALUES (?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
@@ -97,26 +103,27 @@ try {
         $version === '' ? null : $version
     ]);
 
-    // Obtener el ID del equipo
     $idEquipo = $conn->lastInsertId();
 
-    // Procesar las imágenes
+    // Procesar imágenes
     if (isset($_FILES['imagenes'])) {
 
-        $totalImagenes = count($_FILES['imagenes']['name']);
-
-        // Máximo 5 imágenes
-        if ($totalImagenes > 5) {
-            throw new Exception('Máximo 5 imágenes.');
+        if (
+            !is_dir($carpetaImagenes) ||
+            !is_writable($carpetaImagenes)
+        ) {
+            throw new Exception('Carpeta no disponible.');
         }
 
-        // Comprobar la carpeta
-        if (!is_dir($carpetaImagenes) ||
-            !is_writable($carpetaImagenes)) {
-            throw new Exception('No se puede guardar en la carpeta.');
-        }
+        // Extensiones permitidas
+        $extensionesPermitidas = [
+            'jpg',
+            'jpeg',
+            'png',
+            'webp'
+        ];
 
-        // Tipos de imágenes permitidos
+        // Tipos MIME permitidos
         $tiposPermitidos = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
@@ -125,58 +132,101 @@ try {
 
         $finfo = new finfo(FILEINFO_MIME_TYPE);
 
+        $totalImagenes = count(
+            $_FILES['imagenes']['name']
+        );
+
         for ($i = 0; $i < $totalImagenes; $i++) {
 
-            // Comprobar si se seleccionó una imagen
-            if ($_FILES['imagenes']['error'][$i] === UPLOAD_ERR_NO_FILE) {
+            // Si no se seleccionó archivo
+            if (
+                $_FILES['imagenes']['error'][$i] ===
+                UPLOAD_ERR_NO_FILE
+            ) {
                 continue;
             }
 
-            // Comprobar errores
-            if ($_FILES['imagenes']['error'][$i] !== UPLOAD_ERR_OK) {
-                throw new Exception('Error al subir la imagen.');
+            // Comprobar error de subida
+            if (
+                $_FILES['imagenes']['error'][$i] !==
+                UPLOAD_ERR_OK
+            ) {
+                throw new Exception('Error al subir imagen.');
             }
 
-            $archivoTemporal = $_FILES['imagenes']['tmp_name'][$i];
+            $nombreOriginal =
+                $_FILES['imagenes']['name'][$i];
 
-            $tamano = $_FILES['imagenes']['size'][$i];
+            $archivoTemporal =
+                $_FILES['imagenes']['tmp_name'][$i];
 
-            // Máximo 2 MB por imagen
-            if ($tamano <= 0 || $tamano > 2 * 1024 * 1024) {
-                throw new Exception('La imagen supera los 2 MB.');
+            $tamano =
+                $_FILES['imagenes']['size'][$i];
+
+            // Validar tamaño máximo de 2 MB
+            if (
+                $tamano <= 0 ||
+                $tamano > 2 * 1024 * 1024
+            ) {
+                throw new Exception('Tamaño no permitido.');
             }
 
-            // Comprobar que sea una imagen
-            $imagen = getimagesize($archivoTemporal);
+            // Validar extensión
+            $extensionOriginal = strtolower(
+                pathinfo(
+                    $nombreOriginal,
+                    PATHINFO_EXTENSION
+                )
+            );
 
-            if ($imagen === false) {
-                throw new Exception('El archivo no es una imagen.');
+            if (
+                !in_array(
+                    $extensionOriginal,
+                    $extensionesPermitidas,
+                    true
+                )
+            ) {
+                throw new Exception('Extensión no permitida.');
             }
 
-            // Comprobar el tipo real
+            // Validar MIME real
             $tipo = $finfo->file($archivoTemporal);
 
             if (!isset($tiposPermitidos[$tipo])) {
-                throw new Exception('Tipo de imagen no permitido.');
+                throw new Exception('Tipo no permitido.');
             }
 
-            // Crear un nombre seguro
+            // Obtener extensión segura
             $extension = $tiposPermitidos[$tipo];
 
-            $nombreArchivo = bin2hex(random_bytes(16)) . '.' . $extension;
+            // Generar nombre desde el servidor
+            $nombreArchivo =
+                bin2hex(random_bytes(16))
+                . '.'
+                . $extension;
 
-            $rutaDestino = $carpetaImagenes . $nombreArchivo;
+            $rutaDestino =
+                $carpetaImagenes
+                . $nombreArchivo;
 
-            // Guardar la imagen
-            if (!move_uploaded_file($archivoTemporal, $rutaDestino)) {
-                throw new Exception('No se pudo guardar la imagen.');
+            // Guardar archivo
+            if (
+                !move_uploaded_file(
+                    $archivoTemporal,
+                    $rutaDestino
+                )
+            ) {
+                throw new Exception('No se pudo guardar.');
             }
 
             $archivosGuardados[] = $rutaDestino;
 
-            // Registrar el nombre en la base de datos
+            // Guardar imagen en base de datos
             $sql = "INSERT INTO equipo_imagenes
-                    (equipo_id, nombre_archivo)
+                    (
+                        equipo_id,
+                        nombre_archivo
+                    )
                     VALUES (?, ?)";
 
             $stmt = $conn->prepare($sql);
@@ -188,7 +238,7 @@ try {
         }
     }
 
-    // Preparar datos para la bitácora
+    // Datos para bitácora
     $valoresDespues = json_encode([
         'codigo' => $codigo,
         'nombre' => $nombre,
@@ -198,10 +248,16 @@ try {
         'imagenes' => count($archivosGuardados)
     ], JSON_UNESCAPED_UNICODE);
 
-    // Registrar en la bitácora
+    // Registrar en bitácora
     $sql = "INSERT INTO bitacora
-            (usuario_id, accion, entidad, entidad_id,
-             valores_antes, valores_despues)
+            (
+                usuario_id,
+                accion,
+                entidad,
+                entidad_id,
+                valores_antes,
+                valores_despues
+            )
             VALUES (?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
@@ -215,20 +271,15 @@ try {
         $valoresDespues
     ]);
 
-    // Confirmar los cambios
     $conn->commit();
 
-    header('Location: /pages/equipos/index.php');
-    exit();
+} catch (Exception $e) {
 
-} catch (Throwable $e) {
-
-    // Deshacer cambios en la base de datos
     if ($conn->inTransaction()) {
         $conn->rollBack();
     }
 
-    // Borrar imágenes si ocurrió un error
+    // Borrar archivos si ocurrió un error
     foreach ($archivosGuardados as $archivo) {
 
         if (file_exists($archivo)) {
@@ -239,3 +290,6 @@ try {
     header('Location: /pages/equipos/crear.php?error=1');
     exit();
 }
+
+header('Location: /pages/equipos/index.php');
+exit();

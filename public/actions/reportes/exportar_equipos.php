@@ -43,7 +43,7 @@ $sql = "SELECT
             equipos.nombre
 
         ORDER BY total_prestamos DESC,
-                 equipos.nombre ASC";
+                 equipos.codigo ASC";
 
 $stmt = $conn->prepare($sql);
 

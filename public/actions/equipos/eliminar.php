@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../../config/database.php';
 
 requireRole('admin');
 
-// Solo aceptar POST
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /pages/equipos/index.php');
     exit();
@@ -23,6 +23,7 @@ if (
     exit();
 }
 
+// Validar ID
 if ($id <= 0) {
     header('Location: /pages/equipos/index.php?error=1');
     exit();
@@ -32,7 +33,8 @@ if ($id <= 0) {
 $sql = "SELECT id, codigo, nombre, estado
         FROM equipos
         WHERE id = ?
-        AND eliminado_en IS NULL";
+        AND eliminado_en IS NULL
+        LIMIT 1";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute([$id]);
@@ -44,7 +46,7 @@ if (!$equipo) {
     exit();
 }
 
-// Revisar préstamo activo
+// Revisar si tiene préstamo activo
 $sql = "SELECT prestamos.id
         FROM prestamos
         INNER JOIN prestamo_detalle
@@ -79,14 +81,14 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$id]);
 
-    // Datos para bitácora
+    // Datos antes de eliminar
     $valoresAntes = json_encode([
         'codigo' => $equipo['codigo'],
         'nombre' => $equipo['nombre'],
         'estado' => $equipo['estado']
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
 
-    // Registrar eliminación
+    // Registrar en bitácora
     $sql = "INSERT INTO bitacora
             (
                 usuario_id,
@@ -108,9 +110,6 @@ try {
 
     $conn->commit();
 
-    header('Location: /pages/equipos/index.php?mensaje=eliminado');
-    exit();
-
 } catch (Throwable $e) {
 
     if ($conn->inTransaction()) {
@@ -120,3 +119,6 @@ try {
     header('Location: /pages/equipos/index.php?error=1');
     exit();
 }
+
+header('Location: /pages/equipos/index.php?mensaje=eliminado');
+exit();

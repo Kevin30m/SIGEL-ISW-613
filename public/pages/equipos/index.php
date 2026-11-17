@@ -3,7 +3,14 @@
 require_once __DIR__ . '/../../../includes/auth.php';
 require_once __DIR__ . '/../../../config/database.php';
 
-requireRole('admin');
+// Permitir administrador y operador
+if (
+    !isset($_SESSION['rol']) ||
+    !in_array($_SESSION['rol'], ['admin', 'operador'], true)
+) {
+    header('Location: /pages/dashboard.php');
+    exit();
+}
 
 // Crear token de seguridad
 if (empty($_SESSION['csrf_token'])) {
@@ -15,18 +22,15 @@ $valoresPermitidos = [5, 10, 15, 20, 25];
 
 $nombreCookie = 'sigel_equipos_por_pagina';
 
-// Obtener registros por página
+// Valor por defecto
+$porPagina = 10;
+
+// Revisar valor enviado por el formulario
 if (isset($_GET['por_pagina'])) {
 
-    $valorSolicitado = filter_var(
-        $_GET['por_pagina'],
-        FILTER_VALIDATE_INT
-    );
+    $valorSolicitado = (int) $_GET['por_pagina'];
 
-    if (
-        $valorSolicitado !== false &&
-        in_array($valorSolicitado, $valoresPermitidos, true)
-    ) {
+    if (in_array($valorSolicitado, $valoresPermitidos, true)) {
         $porPagina = $valorSolicitado;
     } else {
         $porPagina = 10;
@@ -40,17 +44,11 @@ if (isset($_GET['por_pagina'])) {
         'samesite' => 'Lax'
     ]);
 
-} else {
+} elseif (isset($_COOKIE[$nombreCookie])) {
 
-    $valorCookie = filter_var(
-        $_COOKIE[$nombreCookie] ?? '10',
-        FILTER_VALIDATE_INT
-    );
+    $valorCookie = (int) $_COOKIE[$nombreCookie];
 
-    if (
-        $valorCookie !== false &&
-        in_array($valorCookie, $valoresPermitidos, true)
-    ) {
+    if (in_array($valorCookie, $valoresPermitidos, true)) {
         $porPagina = $valorCookie;
     } else {
         $porPagina = 10;
@@ -74,6 +72,7 @@ $condicion = "WHERE equipos.eliminado_en IS NULL
               AND categorias.eliminado_en IS NULL";
 
 if ($buscar !== '') {
+
     $condicion .= " AND (
         equipos.codigo LIKE :buscar1
         OR equipos.nombre LIKE :buscar2
@@ -103,10 +102,13 @@ $stmtTotal->execute();
 
 $totalEquipos = (int) $stmtTotal->fetchColumn();
 
-$totalPaginas = max(
-    1,
-    (int) ceil($totalEquipos / $porPagina)
+$totalPaginas = (int) ceil(
+    $totalEquipos / $porPagina
 );
+
+if ($totalPaginas < 1) {
+    $totalPaginas = 1;
+}
 
 if ($pagina > $totalPaginas) {
     $pagina = $totalPaginas;
@@ -152,8 +154,17 @@ if ($buscar !== '') {
     $stmt->bindValue(':buscar3', $busqueda);
 }
 
-$stmt->bindValue(':limite', $porPagina, PDO::PARAM_INT);
-$stmt->bindValue(':inicio', $inicio, PDO::PARAM_INT);
+$stmt->bindValue(
+    ':limite',
+    $porPagina,
+    PDO::PARAM_INT
+);
+
+$stmt->bindValue(
+    ':inicio',
+    $inicio,
+    PDO::PARAM_INT
+);
 
 $stmt->execute();
 
@@ -208,12 +219,16 @@ $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     Volver al inicio
                 </a>
 
-                <a
-                    class="boton"
-                    href="/pages/equipos/crear.php"
-                >
-                    Registrar equipo
-                </a>
+                <?php if ($_SESSION['rol'] === 'admin'): ?>
+
+                    <a
+                        class="boton"
+                        href="/pages/equipos/crear.php"
+                    >
+                        Registrar equipo
+                    </a>
+
+                <?php endif; ?>
 
             </div>
 
@@ -301,7 +316,7 @@ $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr>
 
                                 <td>
-                                    <?php echo $equipo['id']; ?>
+                                    <?php echo (int) $equipo['id']; ?>
                                 </td>
 
                                 <td>
@@ -366,42 +381,53 @@ $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                     <a
                                         class="boton"
-                                        href="/pages/equipos/editar.php?id=<?php echo $equipo['id']; ?>"
+                                        href="/pages/equipos/detalle.php?id=<?php echo (int) $equipo['id']; ?>"
                                     >
-                                        Editar
+                                        Consultar
                                     </a>
 
-                                    <form
-                                        action="/actions/equipos/eliminar.php"
-                                        method="POST"
-                                        style="display:inline;"
-                                    >
+                                    <?php if ($_SESSION['rol'] === 'admin'): ?>
 
-                                        <input
-                                            type="hidden"
-                                            name="id"
-                                            value="<?php echo $equipo['id']; ?>"
+                                        <a
+                                            class="boton"
+                                            href="/pages/equipos/editar.php?id=<?php echo (int) $equipo['id']; ?>"
+                                        >
+                                            Editar
+                                        </a>
+
+                                        <form
+                                            action="/actions/equipos/eliminar.php"
+                                            method="POST"
+                                            style="display:inline;"
                                         >
 
-                                        <input
-                                            type="hidden"
-                                            name="csrf_token"
-                                            value="<?php echo htmlspecialchars(
-                                                $_SESSION['csrf_token'],
-                                                ENT_QUOTES | ENT_SUBSTITUTE,
-                                                'UTF-8'
-                                            ); ?>"
-                                        >
+                                            <input
+                                                type="hidden"
+                                                name="id"
+                                                value="<?php echo (int) $equipo['id']; ?>"
+                                            >
 
-                                        <button
-                                            class="boton boton-eliminar"
-                                            type="submit"
-                                            onclick="return confirm('¿Desea eliminar este equipo?');"
-                                        >
-                                            Eliminar
-                                        </button>
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="<?php echo htmlspecialchars(
+                                                    $_SESSION['csrf_token'],
+                                                    ENT_QUOTES | ENT_SUBSTITUTE,
+                                                    'UTF-8'
+                                                ); ?>"
+                                            >
 
-                                    </form>
+                                            <button
+                                                class="boton boton-eliminar"
+                                                type="submit"
+                                                onclick="return confirm('¿Desea eliminar este equipo?');"
+                                            >
+                                                Eliminar
+                                            </button>
+
+                                        </form>
+
+                                    <?php endif; ?>
 
                                 </td>
 
@@ -434,7 +460,9 @@ $equipos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
 
-                        <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>">
+                        <a
+                            href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>"
+                        >
                             <?php echo $i; ?>
                         </a>
 

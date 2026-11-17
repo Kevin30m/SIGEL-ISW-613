@@ -11,18 +11,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Obtener los datos
+// Obtener datos
 $id = (int) ($_POST['id'] ?? 0);
 $nombre = trim($_POST['nombre'] ?? '');
 $token = $_POST['csrf_token'] ?? '';
 
-// Comprobar el ID
+// Validar ID
 if ($id <= 0) {
     header('Location: /pages/categorias/index.php');
     exit();
 }
 
-// Comprobar el token
+// Validar token CSRF
 if (
     empty($_SESSION['csrf_token']) ||
     !hash_equals($_SESSION['csrf_token'], $token)
@@ -31,17 +31,18 @@ if (
     exit();
 }
 
-// Comprobar el nombre
-if ($nombre === '' || mb_strlen($nombre) > 100) {
+// Validar nombre
+if ($nombre === '' || strlen($nombre) > 100) {
     header("Location: /pages/categorias/editar.php?id=$id&error=1");
     exit();
 }
 
-// Buscar la categoría actual
+// Buscar categoría actual
 $sql = "SELECT id, nombre
         FROM categorias
         WHERE id = ?
-        AND eliminado_en IS NULL";
+        AND eliminado_en IS NULL
+        LIMIT 1";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute([$id]);
@@ -53,57 +54,83 @@ if (!$categoria) {
     exit();
 }
 
-// Comprobar si el nombre ya existe
+// Comprobar si ya existe otra categoría con ese nombre
 $sql = "SELECT id
         FROM categorias
         WHERE nombre = ?
         AND id <> ?
-        AND eliminado_en IS NULL";
+        AND eliminado_en IS NULL
+        LIMIT 1";
 
 $stmt = $conn->prepare($sql);
-$stmt->execute([$nombre, $id]);
+$stmt->execute([
+    $nombre,
+    $id
+]);
 
 if ($stmt->fetch()) {
     header("Location: /pages/categorias/editar.php?id=$id&error=duplicada");
     exit();
 }
 
-// Guardar los valores anteriores
+// Datos anteriores y nuevos
 $valoresAntes = json_encode([
     'nombre' => $categoria['nombre']
 ], JSON_UNESCAPED_UNICODE);
 
-// Actualizar la categoría
-$sql = "UPDATE categorias
-        SET nombre = ?
-        WHERE id = ?";
-
-$stmt = $conn->prepare($sql);
-$stmt->execute([$nombre, $id]);
-
-// Guardar los valores nuevos
 $valoresDespues = json_encode([
     'nombre' => $nombre
 ], JSON_UNESCAPED_UNICODE);
 
-// Registrar en la bitácora
-$sql = "INSERT INTO bitacora
-        (usuario_id, accion, entidad, entidad_id,
-         valores_antes, valores_despues)
-        VALUES (?, ?, ?, ?, ?, ?)";
+try {
 
-$stmt = $conn->prepare($sql);
+    $conn->beginTransaction();
 
-$stmt->execute([
-    $_SESSION['usuario_id'],
-    'editar',
-    'categorias',
-    $id,
-    $valoresAntes,
-    $valoresDespues
-]);
+    // Actualizar categoría
+    $sql = "UPDATE categorias
+            SET nombre = ?
+            WHERE id = ?";
 
-// Regresar al listado
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([
+        $nombre,
+        $id
+    ]);
+
+    // Registrar en bitácora
+    $sql = "INSERT INTO bitacora
+            (
+                usuario_id,
+                accion,
+                entidad,
+                entidad_id,
+                valores_antes,
+                valores_despues
+            )
+            VALUES (?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute([
+        $_SESSION['usuario_id'],
+        'editar',
+        'categorias',
+        $id,
+        $valoresAntes,
+        $valoresDespues
+    ]);
+
+    $conn->commit();
+
+} catch (Exception $e) {
+
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+
+    header("Location: /pages/categorias/editar.php?id=$id&error=1");
+    exit();
+}
+
 header('Location: /pages/categorias/index.php');
 exit();
-

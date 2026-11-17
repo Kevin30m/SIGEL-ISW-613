@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../../config/database.php';
 requireRole('admin');
 
 // Obtener el ID
-$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$id = (int) ($_GET['id'] ?? 0);
 
 if ($id <= 0) {
     header('Location: /pages/categorias/index.php');

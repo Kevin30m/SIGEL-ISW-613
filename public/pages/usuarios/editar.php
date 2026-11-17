@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../../config/database.php';
 
 requireRole('admin');
 
+// Obtener ID
 $id = (int) ($_GET['id'] ?? 0);
 
 if ($id <= 0) {
@@ -12,6 +13,7 @@ if ($id <= 0) {
     exit();
 }
 
+// Buscar usuario
 $sql = "SELECT id, rol_id, nombre, username, activo
         FROM usuarios
         WHERE id = ?
@@ -28,6 +30,7 @@ if (!$usuario) {
     exit();
 }
 
+// Buscar roles
 $sql = "SELECT id, nombre
         FROM roles
         ORDER BY nombre";
@@ -36,6 +39,11 @@ $stmt = $conn->prepare($sql);
 $stmt->execute();
 
 $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Crear token CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 ?>
 
@@ -94,7 +102,17 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <input
                     type="hidden"
                     name="id"
-                    value="<?php echo $usuario['id']; ?>"
+                    value="<?php echo (int) $usuario['id']; ?>"
+                >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo htmlspecialchars(
+                        $_SESSION['csrf_token'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
                 >
 
                 <div class="formulario-grupo">
@@ -107,6 +125,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         type="text"
                         name="nombre"
                         id="nombre"
+                        maxlength="100"
                         value="<?php echo htmlspecialchars(
                             $usuario['nombre'],
                             ENT_QUOTES | ENT_SUBSTITUTE,
@@ -127,6 +146,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         type="text"
                         name="username"
                         id="username"
+                        maxlength="50"
                         value="<?php echo htmlspecialchars(
                             $usuario['username'],
                             ENT_QUOTES | ENT_SUBSTITUTE,
@@ -152,7 +172,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php foreach ($roles as $rol): ?>
 
                             <option
-                                value="<?php echo $rol['id']; ?>"
+                                value="<?php echo (int) $rol['id']; ?>"
                                 <?php echo $rol['id'] == $usuario['rol_id'] ? 'selected' : ''; ?>
                             >
                                 <?php echo htmlspecialchars(

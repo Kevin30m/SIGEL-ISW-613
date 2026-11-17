@@ -11,17 +11,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Obtener los datos
+// Obtener datos
 $id = (int) ($_POST['id'] ?? 0);
 $token = $_POST['csrf_token'] ?? '';
 
-// Comprobar el ID
+// Validar ID
 if ($id <= 0) {
     header('Location: /pages/categorias/index.php');
     exit();
 }
 
-// Comprobar el token
+// Validar token CSRF
 if (
     empty($_SESSION['csrf_token']) ||
     !hash_equals($_SESSION['csrf_token'], $token)
@@ -30,11 +30,12 @@ if (
     exit();
 }
 
-// Buscar la categoría
+// Buscar categoría
 $sql = "SELECT id, nombre
         FROM categorias
         WHERE id = ?
-        AND eliminado_en IS NULL";
+        AND eliminado_en IS NULL
+        LIMIT 1";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute([$id]);
@@ -55,46 +56,68 @@ $sql = "SELECT COUNT(*)
 $stmt = $conn->prepare($sql);
 $stmt->execute([$id]);
 
-$totalEquipos = $stmt->fetchColumn();
+$totalEquipos = (int) $stmt->fetchColumn();
 
 if ($totalEquipos > 0) {
     header('Location: /pages/categorias/index.php?error=relacionada');
     exit();
 }
 
-// Guardar valores anteriores
+// Valores anteriores para bitácora
 $valoresAntes = json_encode([
     'nombre' => $categoria['nombre']
 ], JSON_UNESCAPED_UNICODE);
 
-// Eliminación lógica
-$sql = "UPDATE categorias
-        SET eliminado_en = NOW()
-        WHERE id = ?";
-
-$stmt = $conn->prepare($sql);
-$stmt->execute([$id]);
-
-// Registrar en bitácora
 $valoresDespues = json_encode([
     'eliminado' => true
 ], JSON_UNESCAPED_UNICODE);
 
-$sql = "INSERT INTO bitacora
-        (usuario_id, accion, entidad, entidad_id,
-         valores_antes, valores_despues)
-        VALUES (?, ?, ?, ?, ?, ?)";
+try {
 
-$stmt = $conn->prepare($sql);
+    $conn->beginTransaction();
 
-$stmt->execute([
-    $_SESSION['usuario_id'],
-    'eliminar',
-    'categorias',
-    $id,
-    $valoresAntes,
-    $valoresDespues
-]);
+    // Eliminación lógica
+    $sql = "UPDATE categorias
+            SET eliminado_en = NOW()
+            WHERE id = ?";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$id]);
+
+    // Registrar en bitácora
+    $sql = "INSERT INTO bitacora
+            (
+                usuario_id,
+                accion,
+                entidad,
+                entidad_id,
+                valores_antes,
+                valores_despues
+            )
+            VALUES (?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute([
+        $_SESSION['usuario_id'],
+        'eliminar',
+        'categorias',
+        $id,
+        $valoresAntes,
+        $valoresDespues
+    ]);
+
+    $conn->commit();
+
+} catch (Exception $e) {
+
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+
+    header('Location: /pages/categorias/index.php?error=1');
+    exit();
+}
 
 header('Location: /pages/categorias/index.php?mensaje=eliminada');
 exit();

@@ -63,6 +63,7 @@ require_once __DIR__ . '/../../includes/session.php';
                         type="text"
                         name="username"
                         id="username"
+                        maxlength="50"
                         required
                     >
 

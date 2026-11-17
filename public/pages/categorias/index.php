@@ -15,18 +15,15 @@ $valoresPermitidos = [5, 10, 15, 20, 25];
 
 $nombreCookie = 'sigel_categorias_por_pagina';
 
-// Obtener la cantidad de registros por página
+// Valor por defecto
+$porPagina = 10;
+
+// Revisar si viene un valor desde el formulario
 if (isset($_GET['por_pagina'])) {
 
-    $valorSolicitado = filter_var(
-        $_GET['por_pagina'],
-        FILTER_VALIDATE_INT
-    );
+    $valorSolicitado = (int) $_GET['por_pagina'];
 
-    if (
-        $valorSolicitado !== false &&
-        in_array($valorSolicitado, $valoresPermitidos, true)
-    ) {
+    if (in_array($valorSolicitado, $valoresPermitidos, true)) {
         $porPagina = $valorSolicitado;
     } else {
         $porPagina = 10;
@@ -40,17 +37,11 @@ if (isset($_GET['por_pagina'])) {
         'samesite' => 'Lax'
     ]);
 
-} else {
+} elseif (isset($_COOKIE[$nombreCookie])) {
 
-    $valorCookie = filter_var(
-        $_COOKIE[$nombreCookie] ?? '10',
-        FILTER_VALIDATE_INT
-    );
+    $valorCookie = (int) $_COOKIE[$nombreCookie];
 
-    if (
-        $valorCookie !== false &&
-        in_array($valorCookie, $valoresPermitidos, true)
-    ) {
+    if (in_array($valorCookie, $valoresPermitidos, true)) {
         $porPagina = $valorCookie;
     } else {
         $porPagina = 10;
@@ -60,7 +51,7 @@ if (isset($_GET['por_pagina'])) {
 // Búsqueda
 $buscar = trim($_GET['buscar'] ?? '');
 
-// Paginación
+// Página actual
 $pagina = isset($_GET['pagina'])
     ? (int) $_GET['pagina']
     : 1;
@@ -95,10 +86,13 @@ $stmtTotal->execute();
 
 $totalCategorias = (int) $stmtTotal->fetchColumn();
 
-$totalPaginas = max(
-    1,
-    (int) ceil($totalCategorias / $porPagina)
+$totalPaginas = (int) ceil(
+    $totalCategorias / $porPagina
 );
+
+if ($totalPaginas < 1) {
+    $totalPaginas = 1;
+}
 
 if ($pagina > $totalPaginas) {
     $pagina = $totalPaginas;
@@ -123,8 +117,17 @@ if ($buscar !== '') {
     );
 }
 
-$stmt->bindValue(':limite', $porPagina, PDO::PARAM_INT);
-$stmt->bindValue(':inicio', $inicio, PDO::PARAM_INT);
+$stmt->bindValue(
+    ':limite',
+    $porPagina,
+    PDO::PARAM_INT
+);
+
+$stmt->bindValue(
+    ':inicio',
+    $inicio,
+    PDO::PARAM_INT
+);
 
 $stmt->execute();
 
@@ -289,7 +292,7 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr>
 
                                 <td>
-                                    <?php echo $categoria['id']; ?>
+                                    <?php echo (int) $categoria['id']; ?>
                                 </td>
 
                                 <td>
@@ -304,7 +307,7 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                     <a
                                         class="boton"
-                                        href="/pages/categorias/editar.php?id=<?php echo $categoria['id']; ?>"
+                                        href="/pages/categorias/editar.php?id=<?php echo (int) $categoria['id']; ?>"
                                     >
                                         Editar
                                     </a>
@@ -318,7 +321,7 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <input
                                             type="hidden"
                                             name="id"
-                                            value="<?php echo $categoria['id']; ?>"
+                                            value="<?php echo (int) $categoria['id']; ?>"
                                         >
 
                                         <input
@@ -350,9 +353,11 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php else: ?>
 
                         <tr>
+
                             <td colspan="3">
                                 No se encontraron categorías.
                             </td>
+
                         </tr>
 
                     <?php endif; ?>
@@ -370,7 +375,9 @@ $categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
 
-                        <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>">
+                        <a
+                            href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>"
+                        >
                             <?php echo $i; ?>
                         </a>
 

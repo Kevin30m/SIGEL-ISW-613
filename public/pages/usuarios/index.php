@@ -5,8 +5,49 @@ require_once __DIR__ . '/../../../config/database.php';
 
 requireRole('admin');
 
+// Crear token CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Buscar
 $buscar = trim($_GET['buscar'] ?? '');
 
+// Valores permitidos para la paginación
+$valoresPermitidos = [5, 10, 15, 20, 25];
+
+// Valor por defecto
+$porPagina = 10;
+
+// Si existe la cookie, revisar que tenga un valor permitido
+if (isset($_COOKIE['usuarios_por_pagina'])) {
+
+    $valorCookie = (int) $_COOKIE['usuarios_por_pagina'];
+
+    if (in_array($valorCookie, $valoresPermitidos, true)) {
+        $porPagina = $valorCookie;
+    }
+}
+
+// Si el usuario cambia la cantidad por página
+if (isset($_GET['por_pagina'])) {
+
+    $nuevoValor = (int) $_GET['por_pagina'];
+
+    if (in_array($nuevoValor, $valoresPermitidos, true)) {
+
+        $porPagina = $nuevoValor;
+
+        setcookie(
+            'usuarios_por_pagina',
+            (string) $porPagina,
+            time() + (60 * 60 * 24 * 30),
+            '/'
+        );
+    }
+}
+
+// Página actual
 $pagina = isset($_GET['pagina'])
     ? (int) $_GET['pagina']
     : 1;
@@ -15,7 +56,6 @@ if ($pagina < 1) {
     $pagina = 1;
 }
 
-$porPagina = 10;
 $inicio = ($pagina - 1) * $porPagina;
 
 // Contar usuarios
@@ -106,6 +146,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -119,6 +160,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         rel="stylesheet"
         href="/css/style.css"
     >
+
 </head>
 
 <body>
@@ -163,11 +205,26 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     ); ?>"
                 >
 
+                <select name="por_pagina">
+
+                    <?php foreach ($valoresPermitidos as $valor): ?>
+
+                        <option
+                            value="<?php echo $valor; ?>"
+                            <?php echo $porPagina === $valor ? 'selected' : ''; ?>
+                        >
+                            <?php echo $valor; ?> por página
+                        </option>
+
+                    <?php endforeach; ?>
+
+                </select>
+
                 <button
                     class="boton"
                     type="submit"
                 >
-                    Buscar
+                    Aplicar
                 </button>
 
                 <a
@@ -203,7 +260,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <tr>
 
                                 <td>
-                                    <?php echo $usuario['id']; ?>
+                                    <?php echo (int) $usuario['id']; ?>
                                 </td>
 
                                 <td>
@@ -231,28 +288,48 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </td>
 
                                 <td>
-                                    <?php
-                                    echo $usuario['activo']
-                                        ? 'Sí'
-                                        : 'No';
-                                    ?>
+                                    <?php echo $usuario['activo'] ? 'Sí' : 'No'; ?>
                                 </td>
 
                                 <td>
 
                                     <a
                                         class="boton"
-                                        href="/pages/usuarios/editar.php?id=<?php echo $usuario['id']; ?>"
+                                        href="/pages/usuarios/editar.php?id=<?php echo (int) $usuario['id']; ?>"
                                     >
                                         Editar
                                     </a>
 
-                                    <a
-                                        class="boton boton-eliminar"
-                                        href="/actions/usuarios/eliminar.php?id=<?php echo $usuario['id']; ?>"
+                                    <form
+                                        action="/actions/usuarios/eliminar.php"
+                                        method="POST"
+                                        style="display:inline;"
                                     >
-                                        Eliminar
-                                    </a>
+
+                                        <input
+                                            type="hidden"
+                                            name="id"
+                                            value="<?php echo (int) $usuario['id']; ?>"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?php echo htmlspecialchars(
+                                                $_SESSION['csrf_token'],
+                                                ENT_QUOTES | ENT_SUBSTITUTE,
+                                                'UTF-8'
+                                            ); ?>"
+                                        >
+
+                                        <button
+                                            class="boton boton-eliminar"
+                                            type="submit"
+                                        >
+                                            Eliminar
+                                        </button>
+
+                                    </form>
 
                                 </td>
 
@@ -282,7 +359,9 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
 
-                        <a href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>">
+                        <a
+                            href="?pagina=<?php echo $i; ?>&buscar=<?php echo urlencode($buscar); ?>&por_pagina=<?php echo $porPagina; ?>"
+                        >
                             <?php echo $i; ?>
                         </a>
 

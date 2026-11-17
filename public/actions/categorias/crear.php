@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-// Comprobar el token de seguridad
+// Validar token CSRF
 $token = $_POST['csrf_token'] ?? '';
 
 if (
@@ -22,16 +22,16 @@ if (
     exit();
 }
 
-// Obtener el nombre
+// Obtener nombre
 $nombre = trim($_POST['nombre'] ?? '');
 
-// Comprobar que no esté vacío
+// Validar nombre
 if ($nombre === '' || strlen($nombre) > 100) {
     header('Location: /pages/categorias/crear.php?error=1');
     exit();
 }
 
-// Comprobar si la categoría ya existe
+// Comprobar si ya existe
 $sql = "SELECT id
         FROM categorias
         WHERE nombre = ?
@@ -46,38 +46,58 @@ if ($stmt->fetch()) {
     exit();
 }
 
-// Registrar la categoría
-$sql = "INSERT INTO categorias (nombre)
-        VALUES (?)";
-
-$stmt = $conn->prepare($sql);
-$stmt->execute([$nombre]);
-
-// Obtener el ID de la categoría creada
-$idCategoria = $conn->lastInsertId();
-
-// Registrar en la bitácora
+// Datos para bitácora
 $valoresDespues = json_encode([
     'nombre' => $nombre
 ], JSON_UNESCAPED_UNICODE);
 
-$sql = "INSERT INTO bitacora
-        (usuario_id, accion, entidad, entidad_id,
-         valores_antes, valores_despues)
-        VALUES (?, ?, ?, ?, ?, ?)";
+try {
 
-$stmt = $conn->prepare($sql);
+    $conn->beginTransaction();
 
-$stmt->execute([
-    $_SESSION['usuario_id'],
-    'crear',
-    'categorias',
-    $idCategoria,
-    null,
-    $valoresDespues
-]);
+    // Crear categoría
+    $sql = "INSERT INTO categorias (nombre)
+            VALUES (?)";
 
-// Regresar al listado
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$nombre]);
+
+    $idCategoria = $conn->lastInsertId();
+
+    // Registrar en bitácora
+    $sql = "INSERT INTO bitacora
+            (
+                usuario_id,
+                accion,
+                entidad,
+                entidad_id,
+                valores_antes,
+                valores_despues
+            )
+            VALUES (?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+
+    $stmt->execute([
+        $_SESSION['usuario_id'],
+        'crear',
+        'categorias',
+        $idCategoria,
+        null,
+        $valoresDespues
+    ]);
+
+    $conn->commit();
+
+} catch (Exception $e) {
+
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+
+    header('Location: /pages/categorias/crear.php?error=1');
+    exit();
+}
+
 header('Location: /pages/categorias/index.php');
 exit();
-

@@ -5,6 +5,12 @@ require_once __DIR__ . '/../../../config/database.php';
 
 requireRole('admin');
 
+// Crear token CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Buscar roles
 $sql = "SELECT id, nombre
         FROM roles
         ORDER BY nombre";
@@ -57,7 +63,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php if (isset($_GET['error'])): ?>
 
                 <div class="mensaje-error">
-                    No se pudo crear el usuario.
+                    No se pudo crear el usuario. Revise los datos.
                 </div>
 
             <?php endif; ?>
@@ -67,6 +73,16 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 action="/actions/usuarios/crear.php"
                 method="POST"
             >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?php echo htmlspecialchars(
+                        $_SESSION['csrf_token'],
+                        ENT_QUOTES | ENT_SUBSTITUTE,
+                        'UTF-8'
+                    ); ?>"
+                >
 
                 <div class="formulario-grupo">
 
@@ -78,6 +94,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         type="text"
                         name="nombre"
                         id="nombre"
+                        maxlength="100"
                         required
                     >
 
@@ -93,6 +110,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         type="text"
                         name="username"
                         id="username"
+                        maxlength="50"
                         required
                     >
 
@@ -116,7 +134,7 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                         <?php foreach ($roles as $rol): ?>
 
-                            <option value="<?php echo $rol['id']; ?>">
+                            <option value="<?php echo (int) $rol['id']; ?>">
 
                                 <?php echo htmlspecialchars(
                                     $rol['nombre'],
@@ -142,7 +160,12 @@ $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         type="password"
                         name="password"
                         id="password"
+                        maxlength="100"
                     >
+
+                    <small>
+                        Para administrador y operador debe indicar una contraseña.
+                    </small>
 
                 </div>
 

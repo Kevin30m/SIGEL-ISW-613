@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../../config/database.php';
 
 requireRole('admin');
 
-// Obtener el ID del equipo
+
 $id = (int) ($_GET['id'] ?? 0);
 
 if ($id <= 0) {
@@ -14,10 +14,16 @@ if ($id <= 0) {
 }
 
 // Buscar el equipo
-$sql = "SELECT *
+$sql = "SELECT id,
+               categoria_id,
+               codigo,
+               nombre,
+               estado,
+               version
         FROM equipos
         WHERE id = ?
-        AND eliminado_en IS NULL";
+        AND eliminado_en IS NULL
+        LIMIT 1";
 
 $stmt = $conn->prepare($sql);
 $stmt->execute([$id]);
@@ -27,94 +33,6 @@ $equipo = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$equipo) {
     header('Location: /pages/equipos/index.php');
     exit();
-}
-
-// Equipos vistos recientemente
-$equiposRecientes = [];
-
-if (!empty($_COOKIE['equipos_recientes'])) {
-
-    $datosCookie = json_decode(
-        $_COOKIE['equipos_recientes'],
-        true
-    );
-
-    if (is_array($datosCookie)) {
-        $equiposRecientes = $datosCookie;
-    }
-}
-
-$equiposRecientes = array_map(
-    'intval',
-    $equiposRecientes
-);
-
-$equiposRecientes = array_values(
-    array_filter(
-        $equiposRecientes,
-        function ($equipoId) use ($id) {
-            return $equipoId !== $id;
-        }
-    )
-);
-
-array_unshift(
-    $equiposRecientes,
-    $id
-);
-
-$equiposRecientes = array_slice(
-    $equiposRecientes,
-    0,
-    5
-);
-
-setcookie(
-    'equipos_recientes',
-    json_encode($equiposRecientes),
-    [
-        'expires' => time() + (30 * 24 * 60 * 60),
-        'path' => '/',
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]
-);
-
-// Buscar información de equipos recientes
-$listaRecientes = [];
-
-if (count($equiposRecientes) > 0) {
-
-    $marcadores = implode(
-        ',',
-        array_fill(
-            0,
-            count($equiposRecientes),
-            '?'
-        )
-    );
-
-    $sql = "SELECT id, codigo, nombre
-            FROM equipos
-            WHERE id IN ($marcadores)
-            AND eliminado_en IS NULL";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($equiposRecientes);
-
-    $datosRecientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    foreach ($equiposRecientes as $equipoRecienteId) {
-
-        foreach ($datosRecientes as $dato) {
-
-            if ((int) $dato['id'] === $equipoRecienteId) {
-
-                $listaRecientes[] = $dato;
-                break;
-            }
-        }
-    }
 }
 
 // Buscar categorías
@@ -202,7 +120,7 @@ if (empty($_SESSION['csrf_token'])) {
                 <input
                     type="hidden"
                     name="id"
-                    value="<?php echo $equipo['id']; ?>"
+                    value="<?php echo (int) $equipo['id']; ?>"
                 >
 
                 <input
@@ -272,18 +190,16 @@ if (empty($_SESSION['csrf_token'])) {
                         <?php foreach ($categorias as $categoria): ?>
 
                             <option
-                                value="<?php echo $categoria['id']; ?>"
-                                <?php
-                                echo $equipo['categoria_id'] == $categoria['id']
-                                    ? 'selected'
-                                    : '';
-                                ?>
+                                value="<?php echo (int) $categoria['id']; ?>"
+                                <?php echo $equipo['categoria_id'] == $categoria['id'] ? 'selected' : ''; ?>
                             >
+
                                 <?php echo htmlspecialchars(
                                     $categoria['nombre'],
                                     ENT_QUOTES | ENT_SUBSTITUTE,
                                     'UTF-8'
                                 ); ?>
+
                             </option>
 
                         <?php endforeach; ?>
@@ -342,7 +258,7 @@ if (empty($_SESSION['csrf_token'])) {
                         <div class="imagen-actual">
 
                             <img
-                                src="/actions/equipos/imagen.php?id=<?php echo $imagen['id']; ?>"
+                                src="/actions/equipos/imagen.php?id=<?php echo (int) $imagen['id']; ?>"
                                 alt="Imagen del equipo"
                                 width="120"
                             >
@@ -354,7 +270,7 @@ if (empty($_SESSION['csrf_token'])) {
                                 <input
                                     type="checkbox"
                                     name="eliminar_imagenes[]"
-                                    value="<?php echo $imagen['id']; ?>"
+                                    value="<?php echo (int) $imagen['id']; ?>"
                                 >
 
                                 Eliminar esta imagen
@@ -387,10 +303,6 @@ if (empty($_SESSION['csrf_token'])) {
                         multiple
                     >
 
-                    <small>
-                        Puede seleccionar hasta 5 imágenes nuevas.
-                    </small>
-
                 </div>
 
                 <button
@@ -401,52 +313,6 @@ if (empty($_SESSION['csrf_token'])) {
                 </button>
 
             </form>
-
-            <div class="recientes">
-
-                <h3>Equipos vistos recientemente</h3>
-
-                <?php if (count($listaRecientes) > 0): ?>
-
-                    <ul>
-
-                        <?php foreach ($listaRecientes as $reciente): ?>
-
-                            <li>
-
-                                <a
-                                    href="/pages/equipos/editar.php?id=<?php echo $reciente['id']; ?>"
-                                >
-                                    <?php echo htmlspecialchars(
-                                        $reciente['codigo'],
-                                        ENT_QUOTES | ENT_SUBSTITUTE,
-                                        'UTF-8'
-                                    ); ?>
-
-                                    -
-
-                                    <?php echo htmlspecialchars(
-                                        $reciente['nombre'],
-                                        ENT_QUOTES | ENT_SUBSTITUTE,
-                                        'UTF-8'
-                                    ); ?>
-                                </a>
-
-                            </li>
-
-                        <?php endforeach; ?>
-
-                    </ul>
-
-                <?php else: ?>
-
-                    <p>
-                        No hay equipos vistos recientemente.
-                    </p>
-
-                <?php endif; ?>
-
-            </div>
 
         </div>
 

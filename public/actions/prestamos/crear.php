@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../../../includes/auth.php';
 require_once __DIR__ . '/../../../config/database.php';
 
-// Solo admin y operador
+// Solo administrador y operador
 if (
     !isset($_SESSION['rol']) ||
     !in_array($_SESSION['rol'], ['admin', 'operador'], true)
@@ -12,7 +12,7 @@ if (
     exit();
 }
 
-// Comprobar que venga por POST
+// Solo aceptar POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: /pages/prestamos/crear.php');
     exit();
@@ -25,7 +25,7 @@ $fecha_fin = trim($_POST['fecha_fin'] ?? '');
 $equipos = $_POST['equipos'] ?? [];
 $token = $_POST['csrf_token'] ?? '';
 
-// Comprobar token
+// Validar CSRF
 if (
     empty($_SESSION['csrf_token']) ||
     !hash_equals($_SESSION['csrf_token'], $token)
@@ -46,38 +46,65 @@ if (
     exit();
 }
 
-// Convertir fechas
-$inicio = strtotime($fecha_inicio);
-$fin = strtotime($fecha_fin);
+// Validar formato de fechas
+$inicio = DateTime::createFromFormat(
+    'Y-m-d\TH:i',
+    $fecha_inicio
+);
 
-if ($inicio === false || $fin === false) {
+$fin = DateTime::createFromFormat(
+    'Y-m-d\TH:i',
+    $fecha_fin
+);
+
+if (!$inicio || !$fin) {
     header('Location: /pages/prestamos/crear.php?error=1');
     exit();
 }
 
-// La fecha final debe ser mayor
+// Comprobar que las fechas tengan exactamente el formato esperado
+if (
+    $inicio->format('Y-m-d\TH:i') !== $fecha_inicio ||
+    $fin->format('Y-m-d\TH:i') !== $fecha_fin
+) {
+    header('Location: /pages/prestamos/crear.php?error=1');
+    exit();
+}
+
+// La fecha final debe ser posterior a la inicial
 if ($fin <= $inicio) {
     header('Location: /pages/prestamos/crear.php?error=fechas');
     exit();
 }
 
-// Evitar IDs repetidos
-$equipos = array_unique(
-    array_map('intval', $equipos)
+// Preparar IDs de equipos
+$equipos = array_map(
+    'intval',
+    $equipos
 );
 
-// Comprobar profesor
+$equipos = array_unique($equipos);
+
+$equipos = array_values($equipos);
+
+// Validar IDs de equipos
+foreach ($equipos as $equipo_id) {
+
+    if ($equipo_id <= 0) {
+        header('Location: /pages/prestamos/crear.php?error=1');
+        exit();
+    }
+}
+
+// Comprobar que el profesor exista
 $sql = "SELECT usuarios.id
         FROM usuarios
-
         INNER JOIN roles
         ON usuarios.rol_id = roles.id
-
         WHERE usuarios.id = ?
         AND usuarios.activo = 1
         AND usuarios.eliminado_en IS NULL
         AND roles.nombre = 'profesor'
-
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
@@ -95,11 +122,7 @@ try {
     // Revisar cada equipo
     foreach ($equipos as $equipo_id) {
 
-        if ($equipo_id <= 0) {
-            throw new Exception('Equipo inválido');
-        }
-
-        // Comprobar que el equipo existe
+        // Bloquear el equipo durante la operación
         $sql = "SELECT id
                 FROM equipos
                 WHERE id = ?
@@ -114,25 +137,19 @@ try {
             throw new Exception('Equipo no disponible');
         }
 
-        // Comprobar traslapes
+        // Comprobar traslape
         $sql = "SELECT prestamos.id
-
                 FROM prestamos
-
                 INNER JOIN prestamo_detalle
                 ON prestamos.id = prestamo_detalle.prestamo_id
-
                 WHERE prestamo_detalle.equipo_id = ?
-
                 AND prestamos.estado IN (
                     'solicitado',
                     'aprobado',
                     'entregado'
                 )
-
                 AND prestamos.fecha_inicio < ?
                 AND prestamos.fecha_fin > ?
-
                 LIMIT 1";
 
         $stmt = $conn->prepare($sql);
@@ -189,7 +206,7 @@ try {
         ]);
     }
 
-    // Bitácora
+    // Datos para bitácora
     $valoresDespues = json_encode([
         'profesor_id' => $profesor_id,
         'operador_id' => $_SESSION['usuario_id'],
@@ -199,6 +216,7 @@ try {
         'equipos' => $equipos
     ], JSON_UNESCAPED_UNICODE);
 
+    // Registrar creación
     $sql = "INSERT INTO bitacora
             (
                 usuario_id,
@@ -223,9 +241,6 @@ try {
 
     $conn->commit();
 
-    header('Location: /pages/prestamos/index.php');
-    exit();
-
 } catch (Throwable $e) {
 
     if ($conn->inTransaction()) {
@@ -235,3 +250,6 @@ try {
     header('Location: /pages/prestamos/crear.php?error=traslape');
     exit();
 }
+
+header('Location: /pages/prestamos/index.php');
+exit();

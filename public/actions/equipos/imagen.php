@@ -1,15 +1,18 @@
-
 <?php
-
-// Iniciar almacenamiento temporal de salida
-ob_start();
 
 require_once __DIR__ . '/../../../includes/auth.php';
 require_once __DIR__ . '/../../../config/database.php';
 
-requireRole('admin');
+// Permitir administrador y operador
+if (
+    !isset($_SESSION['rol']) ||
+    !in_array($_SESSION['rol'], ['admin', 'operador'], true)
+) {
+    http_response_code(403);
+    exit();
+}
 
-// Obtener el ID de la imagen
+// Obtener ID
 $id = (int) ($_GET['id'] ?? 0);
 
 if ($id <= 0) {
@@ -17,7 +20,7 @@ if ($id <= 0) {
     exit();
 }
 
-// Buscar la imagen en la base de datos
+// Buscar imagen
 $sql = "SELECT equipo_imagenes.nombre_archivo
         FROM equipo_imagenes
         INNER JOIN equipos
@@ -36,33 +39,25 @@ if (!$imagen) {
     exit();
 }
 
-// Buscar la imagen en la carpeta
-$carpeta = dirname(__DIR__, 3) . '/storage/equipment_images/';
-
-$rutaCarpeta = realpath($carpeta);
-
+// Nombre del archivo
 $nombreArchivo = $imagen['nombre_archivo'];
 
-if (
-    !$rutaCarpeta ||
-    basename($nombreArchivo) !== $nombreArchivo
-) {
+// Evitar nombres de archivo incorrectos
+if (basename($nombreArchivo) !== $nombreArchivo) {
     http_response_code(404);
     exit();
 }
 
-$rutaImagen = realpath($carpeta . $nombreArchivo);
+// Ruta de la imagen
+$rutaImagen = __DIR__ . '/../../../storage/equipment_images/' . $nombreArchivo;
 
-// Comprobar que el archivo exista dentro de la carpeta
-if (
-    !$rutaImagen ||
-    !str_starts_with($rutaImagen, $rutaCarpeta . DIRECTORY_SEPARATOR)
-) {
+// Comprobar que exista
+if (!file_exists($rutaImagen)) {
     http_response_code(404);
     exit();
 }
 
-// Comprobar el tipo de imagen
+// Comprobar tipo real del archivo
 $finfo = new finfo(FILEINFO_MIME_TYPE);
 
 $tipo = $finfo->file($rutaImagen);
@@ -78,17 +73,9 @@ if (!in_array($tipo, $tiposPermitidos, true)) {
     exit();
 }
 
-// Limpiar cualquier salida anterior
-while (ob_get_level() > 0) {
-    ob_end_clean();
-}
-
-// Mostrar la imagen
+// Mostrar imagen
 header('Content-Type: ' . $tipo);
 header('X-Content-Type-Options: nosniff');
-header('Cache-Control: private, max-age=3600');
-
-header('Content-Length: ' . filesize($rutaImagen));
 
 readfile($rutaImagen);
 
